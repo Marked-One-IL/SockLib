@@ -1,0 +1,15 @@
+# Ignore everything.
+*
+
+# Keep those files.
+!/.gitignore
+!/CMakeLists.txt
+!/README.md
+
+# Keep those directories.
+!/include/
+!/src/
+
+# Keep the contents of those directories.
+!/include/**
+!/src/**
