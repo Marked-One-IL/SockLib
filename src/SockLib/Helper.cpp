@@ -199,7 +199,10 @@ SockLib::Helper::StaticSocketInitAndDestroyer::StaticSocketInitAndDestroyer(void
 {
 #ifdef _WIN32
     WSADATA wsa;
-    WSAStartup(MAKEWORD(2, 2), &wsa);
+    int res = WSAStartup(MAKEWORD(2, 2), &wsa);
+    if (0 != res) {
+        throw SockLib::Exception("Failed to initialize WSA (WSAStartup() error {})", res);
+    }
 #else
     // Put your unsupported platform specific code here.
 #endif
@@ -207,7 +210,11 @@ SockLib::Helper::StaticSocketInitAndDestroyer::StaticSocketInitAndDestroyer(void
 SockLib::Helper::StaticSocketInitAndDestroyer::~StaticSocketInitAndDestroyer(void)
 {
 #ifdef _WIN32
-    WSACleanup();
+    int res = WSACleanup();
+    if (SOCKET_ERROR == res) {
+        // Cannot throw here.
+        std::cerr << std::format("Failed to destroy WSA (WSA error {})", WSAGetLastError());
+    }
 #else
     // Put your unsupported platform specific code here.
 #endif

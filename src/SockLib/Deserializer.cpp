@@ -100,8 +100,8 @@ std::string SockLib::Deserializer::deserializeStrCopy(void)
 
     std::uint32_t size = this->deserializeUint32();
     std::string s(size, '\0');
-    assert(this->m_totalSize >= this->m_current);
-    assert((this->m_totalSize - this->m_current) >= size);
+    LOGICAL_FAILURE((this->m_totalSize >= this->m_current) &&
+                   ((this->m_totalSize -  this->m_current) >= size), "Deserialized more data more than there is");
     this->deserializeBytes(reinterpret_cast<std::byte*>(s.data()), size);
     return s;
 }
