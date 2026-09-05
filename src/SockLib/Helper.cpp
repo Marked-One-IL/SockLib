@@ -60,16 +60,28 @@ SockLib::Helper::Sock SockLib::Helper::serverInit(std::uint16_t port, bool local
     if (INVALID_SOCKET == sock) {
         throw SockLib::Exception("Failed to initialize socket");
     }
+
     sockaddr_in serverAddress{};
     serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = localhost ? inet_addr("127.0.0.1") : INADDR_ANY;
+    if (localhost) 
+    {
+        if (1 != inet_pton(AF_INET, "127.0.0.1", &serverAddress.sin_addr)) // Should never happen.
+        {
+            closesocket(sock);
+            throw SockLib::Exception("Failed to parse localhost IP address");
+        }
+    } 
+    else 
+    {
+        serverAddress.sin_addr.s_addr = INADDR_ANY;
+    }
     serverAddress.sin_port = htons(static_cast<u_short>(port));
 
-    if (SOCKET_ERROR == ::bind(sock, (sockaddr*)&serverAddress, sizeof(serverAddress))) {
+    if (SOCKET_ERROR == bind(sock, (sockaddr*)&serverAddress, sizeof(serverAddress))) {
         closesocket(sock);
         throw SockLib::Exception("Failed to bind server on port '{}'", port);
     }
-    if (SOCKET_ERROR == ::listen(sock, SOMAXCONN)) {
+    if (SOCKET_ERROR == listen(sock, SOMAXCONN)) {
         closesocket(sock);
         throw SockLib::Exception("Failed to make server listen on port '{}'", port);
     }
@@ -165,6 +177,20 @@ void SockLib::Helper::recvAll(SockLib::Helper::Sock sock, std::byte *bytes, std:
     {
         received += SockLib::Helper::recv(sock, bytes + received, size - received);
     }
+}
+void SockLib::Helper::setTimeout(SockLib::Helper::Sock sock, std::size_t ms)
+{
+#ifdef _WIN32
+    int castedMs = static_cast<int>(ms);
+    if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&castedMs), sizeof(castedMs))) {
+        throw SockLib::Exception("Failed to set receive timeout");
+    }
+    if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&castedMs), sizeof(castedMs))) {
+        throw SockLib::Exception("Failed to set send timeout");
+    }
+#else
+    // Put your unsupported platform specific code here.
+#endif
 }
 void SockLib::Helper::close(SockLib::Helper::Sock sock)
 {

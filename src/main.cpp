@@ -8,7 +8,7 @@
 int main()
 {
     SockLib::Sock s = SockLib::Client::connect(SockLib::Client::LOCALHOST, "80");
-
+    s.setTimeout(500);
     
     std::cout << s.recvStr() << '\n';
 }

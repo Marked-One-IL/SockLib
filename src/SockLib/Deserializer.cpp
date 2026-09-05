@@ -103,7 +103,6 @@ std::string SockLib::Deserializer::deserializeStrCopy(void)
     assert(this->m_totalSize >= this->m_current);
     assert((this->m_totalSize - this->m_current) >= size);
     this->deserializeBytes(reinterpret_cast<std::byte*>(s.data()), size);
-    this->m_current += size;
     return s;
 }
 std::string_view SockLib::Deserializer::deserializeStrView(void)

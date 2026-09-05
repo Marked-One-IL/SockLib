@@ -19,6 +19,7 @@ namespace SockLib
         Sock(SockLib::Sock &&other) noexcept(true);
         SockLib::Sock& operator = (SockLib::Sock &&other) noexcept(true);
 
+        void setTimeout(std::size_t ms);
         void close(void);
 
         void                  sendSerialized   (const SockLib::Serializer &d);

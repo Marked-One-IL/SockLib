@@ -24,6 +24,10 @@ SockLib::Sock &SockLib::Sock::operator = (SockLib::Sock &&other) noexcept(true)
     return *this;
 }
 
+void SockLib::Sock::setTimeout(std::size_t ms)
+{
+    SockLib::Helper::setTimeout(this->m_socket, ms);
+}
 void SockLib::Sock::close(void)
 {
     SockLib::Helper::close(this->m_socket);
@@ -140,7 +144,7 @@ std::int16_t SockLib::Sock::recvInt16(void)
 }
 std::uint16_t SockLib::Sock::recvUint16(void)
 {
-    std::int16_t i{};
+    std::uint16_t i{};
     this->recvAllBytes(reinterpret_cast<std::byte*>(&i), sizeof(i));
     i = SockLib::Helper::normalizeUint16(i);
     return i;

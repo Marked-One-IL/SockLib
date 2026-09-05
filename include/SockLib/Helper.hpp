@@ -69,6 +69,7 @@ namespace SockLib
         static void                  sendAll    (SockLib::Helper::Sock sock, const std::byte *bytes  , std::size_t size);
         static std::size_t           recv       (SockLib::Helper::Sock sock, std::byte       *bytes  , std::size_t size);
         static void                  recvAll    (SockLib::Helper::Sock sock, std::byte       *bytes  , std::size_t size);
+        static void                  setTimeout (SockLib::Helper::Sock sock, std::size_t ms);
         static void                  close      (SockLib::Helper::Sock sock);
 
         struct StaticSocketInitAndDestroyer
