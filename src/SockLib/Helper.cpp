@@ -210,11 +210,7 @@ SockLib::Helper::StaticSocketInitAndDestroyer::StaticSocketInitAndDestroyer(void
 SockLib::Helper::StaticSocketInitAndDestroyer::~StaticSocketInitAndDestroyer(void)
 {
 #ifdef _WIN32
-    int res = WSACleanup();
-    if (SOCKET_ERROR == res) {
-        // Cannot throw here.
-        std::cerr << std::format("Failed to destroy WSA (WSA error {})", WSAGetLastError());
-    }
+    WSACleanup();
 #else
     // Put your unsupported platform specific code here.
 #endif
