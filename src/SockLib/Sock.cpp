@@ -101,6 +101,10 @@ void SockLib::Sock::sendAllBytes(const std::byte *bytes, std::size_t size)
 {
     SockLib::Helper::sendAll(this->m_socket, bytes, size);
 }
+std::size_t SockLib::Sock::sendSomeBytes(const std::byte *bytes, std::size_t size)
+{
+    return SockLib::Helper::send(this->m_socket, bytes, size);
+}
 void SockLib::Sock::sendBool(bool b)
 {
     this->sendUint8(static_cast<std::uint8_t>(b));
@@ -194,6 +198,10 @@ SockLib::Helper::float64_t SockLib::Sock::recvFloat64(void)
 void SockLib::Sock::recvAllBytes(std::byte *bytes, std::size_t size)
 {
     SockLib::Helper::recvAll(this->m_socket, bytes, size);
+}
+std::size_t SockLib::Sock::recvSomeBytes(std::byte *bytes, std::size_t size)
+{
+    return SockLib::Helper::recv(this->m_socket, bytes, size);
 }
 bool SockLib::Sock::recvBool(void)
 {

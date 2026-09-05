@@ -6,6 +6,10 @@
 
 namespace SockLib
 {
+    // No need for million gazillion exceptions.
+    // I hate when libraries do that.
+    // A single exception and a string is enough.
+
     class Exception : public std::runtime_error
     {
     public:

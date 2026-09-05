@@ -25,17 +25,18 @@ namespace SockLib
         void                  sendSerialized   (const SockLib::Serializer &d);
         SockLib::Deserializer recvDeserialized (void);
 
-        void sendInt8     (std::int8_t                           i);
-        void sendUint8    (std::uint8_t                          i);
-        void sendInt16    (std::int16_t                          i);
-        void sendUint16   (std::uint16_t                         i);
-        void sendInt32    (std::int32_t                          i);
-        void sendUint32   (std::uint32_t                         i);
-        void sendInt64    (std::int64_t                          i);
-        void sendUint64   (std::uint64_t                         i);
-        void sendFloat32  (SockLib::Helper::float32_t             f);
-        void sendFloat64  (SockLib::Helper::float64_t             f);
-        void sendAllBytes (const std::byte *bytes, std::size_t size);
+        void sendInt8             (std::int8_t                            i);
+        void sendUint8            (std::uint8_t                           i);
+        void sendInt16            (std::int16_t                           i);
+        void sendUint16           (std::uint16_t                          i);
+        void sendInt32            (std::int32_t                           i);
+        void sendUint32           (std::uint32_t                          i);
+        void sendInt64            (std::int64_t                           i);
+        void sendUint64           (std::uint64_t                          i);
+        void sendFloat32          (SockLib::Helper::float32_t             f);
+        void sendFloat64          (SockLib::Helper::float64_t             f);
+        void sendAllBytes         (const std::byte *bytes, std::size_t size);
+        std::size_t sendSomeBytes (const std::byte *bytes, std::size_t size);
 
         void sendBool  (bool             b);
         void sendChar  (char             c);
@@ -43,17 +44,18 @@ namespace SockLib
         void sendFloat (float            f);
         void sendStr   (std::string_view s);
 
-        std::int8_t                recvInt8     (void);
-        std::uint8_t               recvUint8    (void);
-        std::int16_t               recvInt16    (void);
-        std::uint16_t              recvUint16   (void);
-        std::int32_t               recvInt32    (void);
-        std::uint32_t              recvUint32   (void);
-        std::int64_t               recvInt64    (void);
-        std::uint64_t              recvUint64   (void);
-        SockLib::Helper::float32_t recvFloat32  (void);
-        SockLib::Helper::float64_t recvFloat64  (void);
-        void                       recvAllBytes (std::byte *bytes, std::size_t size);
+        std::int8_t                recvInt8      (void);
+        std::uint8_t               recvUint8     (void);
+        std::int16_t               recvInt16     (void);
+        std::uint16_t              recvUint16    (void);
+        std::int32_t               recvInt32     (void);
+        std::uint32_t              recvUint32    (void);
+        std::int64_t               recvInt64     (void);
+        std::uint64_t              recvUint64    (void);
+        SockLib::Helper::float32_t recvFloat32   (void);
+        SockLib::Helper::float64_t recvFloat64   (void);
+        void                       recvAllBytes  (std::byte *bytes, std::size_t size);
+        std::size_t                recvSomeBytes (std::byte *bytes, std::size_t size);
 
         bool        recvBool  (void);
         char        recvChar  (void);

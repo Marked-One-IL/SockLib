@@ -58,32 +58,23 @@ SockLib::Helper::Sock SockLib::Helper::serverInit(std::uint16_t port, bool local
 #ifdef _WIN32
     SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (INVALID_SOCKET == sock) {
-        throw SockLib::Exception("Failed to initialize socket");
+        throw SockLib::Exception("Failed to initialize socket (WSA error {})", WSAGetLastError());
     }
 
     sockaddr_in serverAddress{};
     serverAddress.sin_family = AF_INET;
-    if (localhost) 
-    {
-        if (1 != inet_pton(AF_INET, "127.0.0.1", &serverAddress.sin_addr)) // Should never happen.
-        {
-            closesocket(sock);
-            throw SockLib::Exception("Failed to parse localhost IP address");
-        }
-    } 
-    else 
-    {
-        serverAddress.sin_addr.s_addr = INADDR_ANY;
-    }
+    serverAddress.sin_addr.s_addr = htonl(localhost ? INADDR_LOOPBACK : INADDR_ANY);
     serverAddress.sin_port = htons(static_cast<u_short>(port));
 
     if (SOCKET_ERROR == bind(sock, (sockaddr*)&serverAddress, sizeof(serverAddress))) {
+        int err = WSAGetLastError();
         closesocket(sock);
-        throw SockLib::Exception("Failed to bind server on port '{}'", port);
+        throw SockLib::Exception("Failed to bind server on port '{}' (WSA error {})", port, err);
     }
     if (SOCKET_ERROR == listen(sock, SOMAXCONN)) {
+        int err = WSAGetLastError();
         closesocket(sock);
-        throw SockLib::Exception("Failed to make server listen on port '{}'", port);
+        throw SockLib::Exception("Failed to make server listen on port '{}' (WSA error {})", port, err);
     }
 
     return sock;
@@ -101,14 +92,16 @@ SockLib::Helper::Sock SockLib::Helper::connect(const char *address, const char *
     addrinfo* result = nullptr;
     int err = getaddrinfo(address, port, &hints, &result);
     if (0 != err) { 
-        throw SockLib::Exception("Could not resolve '{}:{}'", address, port);
+        throw SockLib::Exception("Could not resolve '{}:{}' (getaddrinfo error {})", address, port, err);
     }
 
+    err = 0;
     for (addrinfo* current = result; current != nullptr; current = current->ai_next)
     {
         SOCKET sock = socket(current->ai_family, current->ai_socktype, current->ai_protocol);
 
         if (INVALID_SOCKET == sock) {
+            err = WSAGetLastError();
             continue;
         }
         if (0 == ::connect(sock, current->ai_addr, static_cast<int>(current->ai_addrlen)))
@@ -117,11 +110,12 @@ SockLib::Helper::Sock SockLib::Helper::connect(const char *address, const char *
             return sock;
         }
 
+        err = WSAGetLastError();
         closesocket(sock);
     }
     freeaddrinfo(result);
 
-    throw SockLib::Exception("Could not connect to '{}:{}'", address, port);
+    throw SockLib::Exception("Could not connect to '{}:{}' (WSA error {})", address, port, err);
 #else
     // Put your unsupported platform specific code here.
 #endif
@@ -131,7 +125,7 @@ SockLib::Helper::Sock SockLib::Helper::accept(SockLib::Helper::Sock sock)
 #ifdef _WIN32
     SOCKET newSock = ::accept(sock, nullptr, nullptr);
     if (INVALID_SOCKET == newSock) {
-        throw SockLib::Exception("Failed to accept user");
+        throw SockLib::Exception("Failed to accept client (WSA error {})", WSAGetLastError());
     }
     return newSock;
 #else
@@ -142,8 +136,8 @@ std::size_t SockLib::Helper::send(SockLib::Helper::Sock sock, const std::byte *b
 {
 #ifdef _WIN32
     int res = ::send(sock, reinterpret_cast<const char*>(bytes), static_cast<int>(size), 0);
-    if (SOCKET_ERROR == res || (size != 0 && res == 0)) {
-        throw SockLib::Exception("Failed to send data");
+    if (SOCKET_ERROR == res || ((0 != size) && (0 == res))) {
+        throw SockLib::Exception("Failed to send data (WSA error {})", WSAGetLastError());
     }
     return static_cast<std::size_t>(res);
 #else
@@ -162,8 +156,8 @@ std::size_t SockLib::Helper::recv(SockLib::Helper::Sock sock, std::byte *bytes, 
 {
 #ifdef _WIN32
     int res = ::recv(sock, reinterpret_cast<char*>(bytes), static_cast<int>(size), 0);
-    if (SOCKET_ERROR == res || (size != 0 && res == 0)) {
-        throw SockLib::Exception("Failed to receive data");
+    if (SOCKET_ERROR == res || ((0 != size) && (0 == res))) {
+        throw SockLib::Exception("Failed to receive data (WSA error {})", WSAGetLastError());
     }
     return static_cast<std::size_t>(res);
 #else
@@ -183,10 +177,10 @@ void SockLib::Helper::setTimeout(SockLib::Helper::Sock sock, std::size_t ms)
 #ifdef _WIN32
     int castedMs = static_cast<int>(ms);
     if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&castedMs), sizeof(castedMs))) {
-        throw SockLib::Exception("Failed to set receive timeout");
+        throw SockLib::Exception("Failed to set receive timeout (WSA error {})", WSAGetLastError());
     }
     if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&castedMs), sizeof(castedMs))) {
-        throw SockLib::Exception("Failed to set send timeout");
+        throw SockLib::Exception("Failed to set send timeout (WSA error {})", WSAGetLastError());
     }
 #else
     // Put your unsupported platform specific code here.
