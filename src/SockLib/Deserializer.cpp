@@ -109,7 +109,7 @@ std::string_view SockLib::Deserializer::deserializeStrView(void)
     // [std::uint32_t: 4 bytes][char[]: N]
 
     std::uint32_t size = this->deserializeUint32();
-    if ((this->m_totalSize < this->m_current) || ((this->m_totalSize -  this->m_current) < size)) {
+    if ((this->m_totalSize < this->m_current) || ((this->m_totalSize -  this->m_current) < static_cast<SockLib::Helper::Size>(size))) {
         throw SockLib::Exception("Attempted to deserialize more data than available");
     }
     std::string_view s(reinterpret_cast<const char*>(&this->m_bytes[this->m_current]), static_cast<std::string_view::size_type>(size));
