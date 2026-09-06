@@ -21,20 +21,6 @@ static_assert(sizeof(double) == 8);
 static_assert(std::numeric_limits<float>::is_iec559);
 static_assert(std::numeric_limits<double>::is_iec559);
 
-#ifndef NDEBUG
-#define LOGICAL_FAILURE(expression, ...) \
-do { \
-    if (!(expression)) { \
-        std::cerr << "\nExpression: " << #expression << '\n'; \
-        std::cerr << "Message: " << std::format(__VA_ARGS__) << '\n'; \
-        assert(false); \
-    } \
-} while (false)
-#else
-#define LOGICAL_FAILURE(expression, ...) \
-do { } while (false)
-#endif
-
 namespace SockLib
 {
     class Sock;
@@ -48,6 +34,9 @@ namespace SockLib
         using float64_t = double;
 #ifdef _WIN32
         using Sock = SOCKET;
+        using Size = int;
+        using Byte = char;
+        using PortType = u_short;
         inline static constexpr auto INVALID_SOCK = INVALID_SOCKET;
 #else
         // Put your unsupported platform specific code here.
@@ -62,15 +51,19 @@ namespace SockLib
         static std::uint64_t uint64BitsSwap  (std::uint64_t v);
 
     private:
-        static SockLib::Helper::Sock serverInit (std::uint16_t port, bool localhost);
-        static SockLib::Helper::Sock connect    (const char *address, const char *port);
-        static SockLib::Helper::Sock accept     (SockLib::Helper::Sock sock);
-        static std::size_t           send       (SockLib::Helper::Sock sock, const std::byte *bytes  , std::size_t size);
-        static void                  sendAll    (SockLib::Helper::Sock sock, const std::byte *bytes  , std::size_t size);
-        static std::size_t           recv       (SockLib::Helper::Sock sock, std::byte       *bytes  , std::size_t size);
-        static void                  recvAll    (SockLib::Helper::Sock sock, std::byte       *bytes  , std::size_t size);
-        static void                  setTimeout (SockLib::Helper::Sock sock, std::size_t ms);
-        static void                  close      (SockLib::Helper::Sock sock);
+#ifdef _WIN32
+        static SOCKET serverInit (u_short port, bool localhost);
+        static SOCKET connect    (const char *address, const char *port);
+        static SOCKET accept     (SOCKET sock);
+        static int    send       (SOCKET sock, const char *bytes, int size);
+        static void   sendAll    (SOCKET sock, const char *bytes, int size);
+        static int    recv       (SOCKET sock, char       *bytes, int size);
+        static void   recvAll    (SOCKET sock, char       *bytes, int size);
+        static void   setTimeout (SOCKET sock, int ms);
+        static void   close      (SOCKET sock);
+#else
+    // Put your unsupported platform specific code here.
+#endif
 
         struct StaticSocketInitAndDestroyer
         {

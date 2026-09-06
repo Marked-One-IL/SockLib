@@ -26,7 +26,7 @@ namespace SockLib
         std::uint64_t              deserializeUint64  (void);
         SockLib::Helper::float32_t deserializeFloat32 (void);
         SockLib::Helper::float64_t deserializeFloat64 (void);
-        void                       deserializeBytes   (std::byte *bytes, std::size_t size);
+        void                       deserializeBytes   (SockLib::Helper::Byte *bytes, SockLib::Helper::Size size);
 
         // Simple methods.
 
@@ -38,14 +38,12 @@ namespace SockLib
         std::string_view deserializeStrView (void);
 
     private:
-        Deserializer(std::size_t size);
-        std::byte *getBytes(void);
+        Deserializer(SockLib::Helper::Size size);
+        SockLib::Helper::Byte *getBytes(void);
 
-        std::unique_ptr<std::byte[]> m_bytes;
-        std::size_t m_current = 0;
-#ifndef NDEBUG // Used by LOGICAL_FAILURE only.
-        std::size_t m_totalSize;
-#endif
+        std::unique_ptr<SockLib::Helper::Byte[]> m_bytes;
+        SockLib::Helper::Size m_current = 0;
+        SockLib::Helper::Size m_totalSize;
         friend class SockLib::Sock;
     };
 }

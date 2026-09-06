@@ -19,7 +19,7 @@ namespace SockLib
         Sock(SockLib::Sock &&other) noexcept(true);
         SockLib::Sock& operator = (SockLib::Sock &&other) noexcept(true);
 
-        void setTimeout(std::size_t ms);
+        void setTimeout(SockLib::Helper::Size ms);
         void close(void);
 
         void                  sendSerialized   (const SockLib::Serializer &d);
@@ -35,8 +35,8 @@ namespace SockLib
         void sendUint64           (std::uint64_t                          i);
         void sendFloat32          (SockLib::Helper::float32_t             f);
         void sendFloat64          (SockLib::Helper::float64_t             f);
-        void sendAllBytes         (const std::byte *bytes, std::size_t size);
-        std::size_t sendSomeBytes (const std::byte *bytes, std::size_t size);
+        void sendAllBytes         (const SockLib::Helper::Byte *bytes, SockLib::Helper::Size size);
+        SockLib::Helper::Size sendSomeBytes (const SockLib::Helper::Byte *bytes, SockLib::Helper::Size size);
 
         void sendBool  (bool             b);
         void sendChar  (char             c);
@@ -54,8 +54,8 @@ namespace SockLib
         std::uint64_t              recvUint64    (void);
         SockLib::Helper::float32_t recvFloat32   (void);
         SockLib::Helper::float64_t recvFloat64   (void);
-        void                       recvAllBytes  (std::byte *bytes, std::size_t size);
-        std::size_t                recvSomeBytes (std::byte *bytes, std::size_t size);
+        void                       recvAllBytes  (SockLib::Helper::Byte *bytes, SockLib::Helper::Size size);
+        SockLib::Helper::Size      recvSomeBytes (SockLib::Helper::Byte *bytes, SockLib::Helper::Size size);
 
         bool        recvBool  (void);
         char        recvChar  (void);

@@ -53,9 +53,9 @@ std::uint64_t SockLib::Helper::uint64BitsSwap(std::uint64_t v)
             ((v & 0xFF00000000000000ULL) >> 56);
 }
 
-SockLib::Helper::Sock SockLib::Helper::serverInit(std::uint16_t port, bool localhost)
-{
 #ifdef _WIN32
+SockLib::Helper::Sock SockLib::Helper::serverInit(u_short port, bool localhost)
+{
     SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (INVALID_SOCKET == sock) {
         throw SockLib::Exception("Failed to initialize socket (WSA error {})", WSAGetLastError());
@@ -64,9 +64,9 @@ SockLib::Helper::Sock SockLib::Helper::serverInit(std::uint16_t port, bool local
     sockaddr_in serverAddress{};
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = htonl(localhost ? INADDR_LOOPBACK : INADDR_ANY);
-    serverAddress.sin_port = htons(static_cast<u_short>(port));
+    serverAddress.sin_port = htons(port);
 
-    if (SOCKET_ERROR == bind(sock, (sockaddr*)&serverAddress, sizeof(serverAddress))) {
+    if (SOCKET_ERROR == bind(sock, (sockaddr*)&serverAddress, static_cast<int>(sizeof(serverAddress)))) {
         int err = WSAGetLastError();
         closesocket(sock);
         throw SockLib::Exception("Failed to bind server on port '{}' (WSA error {})", port, err);
@@ -78,18 +78,14 @@ SockLib::Helper::Sock SockLib::Helper::serverInit(std::uint16_t port, bool local
     }
 
     return sock;
-#else
-    // Put your unsupported platform specific code here.
-#endif
 }
 SockLib::Helper::Sock SockLib::Helper::connect(const char *address, const char *port)
 {
-#ifdef _WIN32
     addrinfo hints{};
     hints.ai_family   = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
-    addrinfo* result = nullptr;
+    addrinfo *result = nullptr;
     int err = getaddrinfo(address, port, &hints, &result);
     if (0 != err) { 
         throw SockLib::Exception("Could not resolve '{}:{}' (getaddrinfo error {})", address, port, err);
@@ -116,83 +112,59 @@ SockLib::Helper::Sock SockLib::Helper::connect(const char *address, const char *
     freeaddrinfo(result);
 
     throw SockLib::Exception("Could not connect to '{}:{}' (WSA error {})", address, port, err);
-#else
-    // Put your unsupported platform specific code here.
-#endif
 }
-SockLib::Helper::Sock SockLib::Helper::accept(SockLib::Helper::Sock sock)
+SOCKET SockLib::Helper::accept(SOCKET sock)
 {
-#ifdef _WIN32
     SOCKET newSock = ::accept(sock, nullptr, nullptr);
     if (INVALID_SOCKET == newSock) {
         throw SockLib::Exception("Failed to accept client (WSA error {})", WSAGetLastError());
     }
     return newSock;
-#else
-    // Put your unsupported platform specific code here.
-#endif
 }
-std::size_t SockLib::Helper::send(SockLib::Helper::Sock sock, const std::byte *bytes, std::size_t size)
+int SockLib::Helper::send(SOCKET sock, const char *bytes, int size)
 {
-#ifdef _WIN32
-    int res = ::send(sock, reinterpret_cast<const char*>(bytes), static_cast<int>(size), 0);
-    if (SOCKET_ERROR == res || ((0 != size) && (0 == res))) {
+    int sent = ::send(sock, reinterpret_cast<const char*>(bytes), size, 0);
+    if (SOCKET_ERROR == sent || ((0 != size) && (0 == sent))) {
         throw SockLib::Exception("Failed to send data (WSA error {})", WSAGetLastError());
     }
-    return static_cast<std::size_t>(res);
-#else
-    // Put your unsupported platform specific code here.
-#endif
+    return sent;
 }
-void SockLib::Helper::sendAll(SockLib::Helper::Sock sock, const std::byte *bytes, std::size_t size)
+void SockLib::Helper::sendAll(SOCKET sock, const char *bytes, int size)
 {
-    std::size_t sent = 0;
+    int sent = 0;
     while (sent < size)
     {
         sent += SockLib::Helper::send(sock, bytes + sent, size - sent);
     }
 }
-std::size_t SockLib::Helper::recv(SockLib::Helper::Sock sock, std::byte *bytes, std::size_t size)
+int SockLib::Helper::recv(SOCKET sock, char *bytes, int size)
 {
-#ifdef _WIN32
-    int res = ::recv(sock, reinterpret_cast<char*>(bytes), static_cast<int>(size), 0);
-    if (SOCKET_ERROR == res || ((0 != size) && (0 == res))) {
+    int received = ::recv(sock, reinterpret_cast<char*>(bytes), size, 0);
+    if (SOCKET_ERROR == received || ((0 != size) && (0 == received))) {
         throw SockLib::Exception("Failed to receive data (WSA error {})", WSAGetLastError());
     }
-    return static_cast<std::size_t>(res);
-#else
-    // Put your unsupported platform specific code here.
-#endif
+    return received;
 }
-void SockLib::Helper::recvAll(SockLib::Helper::Sock sock, std::byte *bytes, std::size_t size)
+void SockLib::Helper::recvAll(SOCKET sock, char *bytes, int size)
 {
-    std::size_t received = 0;
+    int received = 0;
     while (received < size)
     {
         received += SockLib::Helper::recv(sock, bytes + received, size - received);
     }
 }
-void SockLib::Helper::setTimeout(SockLib::Helper::Sock sock, std::size_t ms)
+void SockLib::Helper::setTimeout(SOCKET sock, int ms)
 {
-#ifdef _WIN32
-    int castedMs = static_cast<int>(ms);
-    if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&castedMs), sizeof(castedMs))) {
+    if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&ms), static_cast<int>(sizeof(ms)))) {
         throw SockLib::Exception("Failed to set receive timeout (WSA error {})", WSAGetLastError());
     }
-    if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&castedMs), sizeof(castedMs))) {
+    if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&ms), static_cast<int>(sizeof(ms)))) {
         throw SockLib::Exception("Failed to set send timeout (WSA error {})", WSAGetLastError());
     }
-#else
-    // Put your unsupported platform specific code here.
-#endif
 }
-void SockLib::Helper::close(SockLib::Helper::Sock sock)
+void SockLib::Helper::close(SOCKET sock)
 {
-#ifdef _WIN32
     closesocket(sock);
-#else
-    // Put your unsupported platform specific code here.
-#endif
 }
 
 SockLib::Helper::StaticSocketInitAndDestroyer::StaticSocketInitAndDestroyer(void)
@@ -215,3 +187,6 @@ SockLib::Helper::StaticSocketInitAndDestroyer::~StaticSocketInitAndDestroyer(voi
     // Put your unsupported platform specific code here.
 #endif
 }
+#else
+// Put your unsupported platform specific code here.
+#endif
