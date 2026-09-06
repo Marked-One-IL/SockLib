@@ -33,11 +33,9 @@ namespace SockLib
         using float32_t = float;
         using float64_t = double;
 #ifdef _WIN32
-        using Sock = SOCKET;
         using Size = int;
         using Byte = char;
         using PortType = u_short;
-        inline static constexpr auto INVALID_SOCK = INVALID_SOCKET;
 #else
         // Put your unsupported platform specific code here.
 #endif
@@ -52,6 +50,9 @@ namespace SockLib
 
     private:
 #ifdef _WIN32
+        using Sock = SOCKET;
+        inline static constexpr auto INVALID_SOCK = INVALID_SOCKET;
+
         static SOCKET serverInit (u_short port, bool localhost);
         static SOCKET connect    (const char *address, const char *port);
         static SOCKET accept     (SOCKET sock);
