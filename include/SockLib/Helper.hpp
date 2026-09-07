@@ -24,7 +24,6 @@ static_assert(std::numeric_limits<double>::is_iec559);
 namespace SockLib
 {
     class Sock;
-    class Client;
     class Server;
 
     class Helper
@@ -63,7 +62,7 @@ namespace SockLib
         static void   setTimeout (SOCKET sock, int ms);
         static void   close      (SOCKET sock);
 #else
-    // Put your unsupported platform specific code here.
+        // Put your unsupported platform specific code here.
 #endif
 
         struct StaticSocketInitAndDestroyer
@@ -75,7 +74,6 @@ namespace SockLib
         static SockLib::Helper::StaticSocketInitAndDestroyer g_staticSocketInitAndDestroyer;
 
         friend class SockLib::Sock;
-        friend class SockLib::Client;
         friend class SockLib::Server;
     };
 }

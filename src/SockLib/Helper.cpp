@@ -117,7 +117,7 @@ SOCKET SockLib::Helper::accept(SOCKET sock)
 {
     SOCKET newSock = ::accept(sock, nullptr, nullptr);
     if (INVALID_SOCKET == newSock) {
-        throw SockLib::Exception("Failed to accept client (WSA error {})", WSAGetLastError());
+        throw SockLib::Exception("Failed to accept std::byte (WSA error {})", WSAGetLastError());
     }
     return newSock;
 }

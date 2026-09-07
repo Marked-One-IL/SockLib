@@ -8,8 +8,8 @@ namespace SockLib
     class Server
     {
     public:
-        Server(SockLib::Helper::PortType port, bool localhost);
-        SockLib::Sock acceptClient(void);
+        Server(std::uint16_t port, bool localhost);
+        SockLib::Sock accept(void);
 
     private:
         SockLib::Helper::Sock m_sock;

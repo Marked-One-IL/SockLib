@@ -5,54 +5,54 @@
 std::int8_t SockLib::Deserializer::deserializeInt8(void)
 {
     std::int8_t i{};
-    this->deserializeBytes(reinterpret_cast<SockLib::Helper::Byte*>(&i), static_cast<SockLib::Helper::Size>(sizeof(i)));
+    this->deserializeBytes(reinterpret_cast<std::byte*>(&i), sizeof(i));
     return i;
 }
 std::uint8_t SockLib::Deserializer::deserializeUint8(void)
 {
     std::uint8_t i{};
-    this->deserializeBytes(reinterpret_cast<SockLib::Helper::Byte*>(&i), static_cast<SockLib::Helper::Size>(sizeof(i)));
+    this->deserializeBytes(reinterpret_cast<std::byte*>(&i), sizeof(i));
     return i;
 }
 std::int16_t SockLib::Deserializer::deserializeInt16(void)
 {
     std::int16_t i{};
-    this->deserializeBytes(reinterpret_cast<SockLib::Helper::Byte*>(&i), static_cast<SockLib::Helper::Size>(sizeof(i)));
+    this->deserializeBytes(reinterpret_cast<std::byte*>(&i), sizeof(i));
     i = static_cast<std::int16_t>(SockLib::Helper::normalizeUint16(static_cast<std::uint16_t>(i)));
     return i;
 }
 std::uint16_t SockLib::Deserializer::deserializeUint16(void)
 {
     std::uint16_t i{};
-    this->deserializeBytes(reinterpret_cast<SockLib::Helper::Byte*>(&i), static_cast<SockLib::Helper::Size>(sizeof(i)));
+    this->deserializeBytes(reinterpret_cast<std::byte*>(&i), sizeof(i));
     i = SockLib::Helper::normalizeUint16(i);
     return i;
 }
 std::int32_t SockLib::Deserializer::deserializeInt32(void)
 {
     std::int32_t i{};
-    this->deserializeBytes(reinterpret_cast<SockLib::Helper::Byte*>(&i), static_cast<SockLib::Helper::Size>(sizeof(i)));
+    this->deserializeBytes(reinterpret_cast<std::byte*>(&i), sizeof(i));
     i = static_cast<std::int32_t>(SockLib::Helper::normalizeUint32(static_cast<std::uint32_t>(i)));
     return i;
 }
 std::uint32_t SockLib::Deserializer::deserializeUint32(void)
 {
     std::uint32_t i{};
-    this->deserializeBytes(reinterpret_cast<SockLib::Helper::Byte*>(&i), static_cast<SockLib::Helper::Size>(sizeof(i)));
+    this->deserializeBytes(reinterpret_cast<std::byte*>(&i), sizeof(i));
     i = SockLib::Helper::normalizeUint32(i);
     return i;
 }
 std::int64_t SockLib::Deserializer::deserializeInt64(void)
 {
     std::int64_t i{};
-    this->deserializeBytes(reinterpret_cast<SockLib::Helper::Byte*>(&i), static_cast<SockLib::Helper::Size>(sizeof(i)));
+    this->deserializeBytes(reinterpret_cast<std::byte*>(&i), sizeof(i));
     i = static_cast<std::int64_t>(SockLib::Helper::normalizeUint64(static_cast<std::uint64_t>(i)));
     return i;
 }
 std::uint64_t SockLib::Deserializer::deserializeUint64(void)
 {
     std::uint64_t i{};
-    this->deserializeBytes(reinterpret_cast<SockLib::Helper::Byte*>(&i), static_cast<SockLib::Helper::Size>(sizeof(i)));
+    this->deserializeBytes(reinterpret_cast<std::byte*>(&i), sizeof(i));
     i = SockLib::Helper::normalizeUint64(i);
     return i;
 }
@@ -70,12 +70,12 @@ SockLib::Helper::float64_t SockLib::Deserializer::deserializeFloat64(void)
     std::memcpy(&f, &i, sizeof(f));
     return f;
 }
-void SockLib::Deserializer::deserializeBytes(SockLib::Helper::Byte *bytes, SockLib::Helper::Size size)
+void SockLib::Deserializer::deserializeBytes(std::byte *bytes, std::size_t size)
 { 
     if ((this->m_totalSize < this->m_current) || ((this->m_totalSize -  this->m_current) < size)) {
         throw SockLib::Exception("Attempted to deserialize more data than available");
     }
-    std::memcpy(bytes, &this->m_bytes[this->m_current], static_cast<std::size_t>(size));
+    std::memcpy(bytes, &this->m_bytes[this->m_current], size);
     this->m_current += size;
 }
 
@@ -101,7 +101,7 @@ std::string SockLib::Deserializer::deserializeStrCopy(void)
 
     std::uint32_t size = this->deserializeUint32();
     std::string s(static_cast<std::string::size_type>(size), '\0');
-    this->deserializeBytes(reinterpret_cast<SockLib::Helper::Byte*>(s.data()), static_cast<SockLib::Helper::Size>(size));
+    this->deserializeBytes(reinterpret_cast<std::byte*>(s.data()), static_cast<std::size_t>(size));
     return s;
 }
 std::string_view SockLib::Deserializer::deserializeStrView(void)
@@ -109,19 +109,19 @@ std::string_view SockLib::Deserializer::deserializeStrView(void)
     // [std::uint32_t: 4 bytes][char[]: N]
 
     std::uint32_t size = this->deserializeUint32();
-    if ((this->m_totalSize < this->m_current) || ((this->m_totalSize -  this->m_current) < static_cast<SockLib::Helper::Size>(size))) {
+    if ((this->m_totalSize < this->m_current) || ((this->m_totalSize -  this->m_current) < static_cast<std::size_t>(size))) {
         throw SockLib::Exception("Attempted to deserialize more data than available");
     }
     std::string_view s(reinterpret_cast<const char*>(&this->m_bytes[this->m_current]), static_cast<std::string_view::size_type>(size));
-    this->m_current += size;
+    this->m_current += static_cast<std::size_t>(size);
     return s;
 }
 
-SockLib::Deserializer::Deserializer(SockLib::Helper::Size size) :
-    m_bytes(std::make_unique<SockLib::Helper::Byte[]>(static_cast<std::size_t>(size))), m_totalSize(static_cast<std::size_t>(size))
+SockLib::Deserializer::Deserializer(std::size_t size) :
+    m_bytes(std::make_unique<std::byte[]>(size)), m_totalSize(size)
 {
 }
-SockLib::Helper::Byte *SockLib::Deserializer::getBytes(void)
+std::byte *SockLib::Deserializer::getBytes(void)
 {
     return this->m_bytes.get();
 }

@@ -27,7 +27,7 @@ namespace SockLib
         void serializeUint64  (std::uint64_t              i);
         void serializeFloat32 (SockLib::Helper::float32_t f);
         void serializeFloat64 (SockLib::Helper::float64_t f);
-        void serializeBytes   (const SockLib::Helper::Byte *bytes, SockLib::Helper::Size size);
+        void serializeBytes   (const std::byte *bytes, std::size_t size);
 
         // Simple methods.
 
@@ -38,10 +38,10 @@ namespace SockLib
         void serializeStr   (std::string_view s);
 
     private:
-        const SockLib::Helper::Byte *getBytes (void) const;
-        SockLib::Helper::Size        getSize  (void) const;
+        const std::byte *getBytes (void) const;
+        std::size_t      getSize  (void) const;
 
-        std::vector<SockLib::Helper::Byte> m_bytes;
+        std::vector<std::byte> m_bytes;
         friend class SockLib::Sock;
     };
 }
