@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.20)
 project(SockLib LANGUAGES CXX)
 
-add_library(${PROJECT_NAME} STATIC
+add_library(SockLib STATIC
  "src/Deserializer.cpp"
  "src/Exception.cpp"
  "src/Helper.cpp"
@@ -9,8 +9,8 @@ add_library(${PROJECT_NAME} STATIC
  "src/Server.cpp"
  "src/Sock.cpp")
 
-target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
-target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+target_include_directories(SockLib PUBLIC "include/")
+target_compile_features(SockLib PUBLIC cxx_std_20)
 if(WIN32)
-    target_link_libraries(${PROJECT_NAME} PRIVATE ws2_32)
+    target_link_libraries(SockLib PRIVATE ws2_32)
 endif()
