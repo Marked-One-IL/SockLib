@@ -1,6 +1,6 @@
 # About
-A C++ socket library.<br>
-- Support Windows only at the moment.<br>
+A C++ TCP socket library.<br>
+- Supports Windows only at the moment.<br>
 
 # CMake
 Before creating target.
