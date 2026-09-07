@@ -1,5 +1,6 @@
-# Status
-Support windows only at the moment.<br>
+# About
+A C++ socket library.<br>
+- Support Windows only at the moment.<br>
 
 # CMake
 Before creating target.
