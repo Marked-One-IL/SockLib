@@ -59,6 +59,7 @@ namespace SockLib
         SockLib::Helper::float64_t recvFloat64   (void);
         void                       recvAllBytes  (std::byte *bytes, std::size_t size);
         std::size_t                recvSomeBytes (std::byte *bytes, std::size_t size);
+        void                       recvDiscard   (std::size_t limit);
 
         bool                       recvBool       (void);
         char                       recvChar       (void);
