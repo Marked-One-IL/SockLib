@@ -1,5 +1,6 @@
 # About
-A C++ TCP socket library.<br>
+A simple but explicit TCP socket library for C++.
+
 - Supports Windows only at the moment.<br>
 
 # CMake
@@ -36,7 +37,7 @@ int main()
         s.serializeStr("Hello, World!");
         sock.sendSerialized(s);
         std::cout << sock.recvInt16() << '\n';
-#else
+#else // CLIENT
         SockLib::Sock sock = SockLib::Sock::connect(SockLib::Sock::LOCALHOST, 80);
         SockLib::Deserializer d = sock.recvDeserialized();
         std::cout << d.deserializeBool() << '\n';
@@ -47,7 +48,7 @@ int main()
     }
     catch (const std::exception &e)
     {
-        std::cout << e.what() << '\n';
+        std::cerr << e.what() << '\n';
     }
 }
 ```
