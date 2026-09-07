@@ -123,7 +123,7 @@ SOCKET SockLib::Helper::accept(SOCKET sock)
 }
 int SockLib::Helper::send(SOCKET sock, const char *bytes, int size)
 {
-    int sent = ::send(sock, reinterpret_cast<const char*>(bytes), size, 0);
+    int sent = ::send(sock, bytes, size, 0);
     if (SOCKET_ERROR == sent) {
         throw SockLib::Exception("Failed to send data (WSA error {})", WSAGetLastError());
     }
@@ -139,7 +139,7 @@ void SockLib::Helper::sendAll(SOCKET sock, const char *bytes, int size)
 }
 int SockLib::Helper::recv(SOCKET sock, char *bytes, int size)
 {
-    int received = ::recv(sock, reinterpret_cast<char*>(bytes), size, 0);
+    int received = ::recv(sock, bytes, size, 0);
     if (SOCKET_ERROR == received || 0 == received) {
         throw SockLib::Exception("Failed to receive data (WSA error {})", WSAGetLastError());
     }
