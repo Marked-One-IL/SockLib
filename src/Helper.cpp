@@ -140,8 +140,11 @@ void SockLib::Helper::sendAll(SOCKET sock, const char *bytes, int size)
 int SockLib::Helper::recv(SOCKET sock, char *bytes, int size)
 {
     int received = ::recv(sock, bytes, size, 0);
-    if (SOCKET_ERROR == received || 0 == received) {
+    if (SOCKET_ERROR == received) {
         throw SockLib::Exception("Failed to receive data (WSA error {})", WSAGetLastError());
+    }
+    if (0 == received) {
+        throw SockLib::Exception("Failed to receive data because the session ended");
     }
     return received;
 }
