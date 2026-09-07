@@ -1,7 +1,7 @@
 #include <SockLib/Server.hpp>
 
 SockLib::Server::Server(std::uint16_t port, bool localhost) :
-    m_sock(SockLib::Helper::serverInit(port, localhost))
+    m_sock(SockLib::Helper::serverInit(static_cast<SockLib::Helper::PortType>(port), localhost))
 {
 }
 

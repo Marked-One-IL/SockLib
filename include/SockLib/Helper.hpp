@@ -31,13 +31,6 @@ namespace SockLib
     public:
         using float32_t = float;
         using float64_t = double;
-#ifdef _WIN32
-        using Size = int;
-        using Byte = char;
-        using PortType = u_short;
-#else
-        // Put your unsupported platform specific code here.
-#endif
 
         static std::uint16_t normalizeUint16 (std::uint16_t v);
         static std::uint32_t normalizeUint32 (std::uint32_t v);
@@ -49,6 +42,9 @@ namespace SockLib
 
     private:
 #ifdef _WIN32
+        using Size = int;
+        using Byte = char;
+        using PortType = u_short;
         using Sock = SOCKET;
         inline static constexpr auto INVALID_SOCK = INVALID_SOCKET;
 
