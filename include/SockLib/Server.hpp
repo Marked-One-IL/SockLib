@@ -12,6 +12,6 @@ namespace SockLib
         SockLib::Sock accept(void);
 
     private:
-        SockLib::Helper::Sock m_sock;
+        SockLib::Sock m_sock;
     };
 }

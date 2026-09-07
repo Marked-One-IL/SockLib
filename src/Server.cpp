@@ -7,5 +7,5 @@ SockLib::Server::Server(std::uint16_t port, bool localhost) :
 
 SockLib::Sock SockLib::Server::accept(void)
 {
-    return SockLib::Helper::accept(this->m_sock);
+    return SockLib::Helper::accept(this->m_sock.m_socket);
 }
