@@ -11,6 +11,7 @@ namespace SockLib
     class Sock
     {
     public:
+        inline static constexpr std::size_t SIZE_LIMIT = static_cast<std::size_t>(INT_MAX);
         inline static constexpr const char *LOCALHOST = "127.0.0.1";
 
         ~Sock(void);
@@ -26,7 +27,7 @@ namespace SockLib
 
         void                                 sendSerialized        (const SockLib::Serializer &d);
         SockLib::Deserializer                recvDeserialized      (void);
-        std::optional<SockLib::Deserializer> recvDeserializedLimit (std::size_t limit);
+        std::optional<SockLib::Deserializer> recvDeserializedLimit (std::uint32_t limit);
 
         void        sendInt8             (std::int8_t                            i);
         void        sendUint8            (std::uint8_t                           i);
@@ -66,7 +67,7 @@ namespace SockLib
         int                        recvInt        (void);
         float                      recvFloat      (void);
         std::string                recvStr        (void);
-        std::optional<std::string> recvStrLimit   (std::size_t limit);
+        std::optional<std::string> recvStrLimit   (std::uint32_t limit);
 
         static SockLib::Sock connect(const char *address, std::uint16_t port);
 

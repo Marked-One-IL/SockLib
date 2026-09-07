@@ -47,10 +47,10 @@ SockLib::Deserializer SockLib::Sock::recvDeserialized()
     this->recvAllBytes(data.getBytes(), static_cast<std::size_t>(size));
     return data;
 }
-std::optional<SockLib::Deserializer> SockLib::Sock::recvDeserializedLimit(std::size_t limit)
+std::optional<SockLib::Deserializer> SockLib::Sock::recvDeserializedLimit(std::uint32_t limit)
 {
     std::uint32_t size = this->recvUint32();
-    if (size > static_cast<std::uint32_t>(limit)) {
+    if (size > limit) {
         this->recvDiscard(static_cast<std::size_t>(size));
         return std::nullopt;
     }
@@ -112,10 +112,12 @@ void SockLib::Sock::sendFloat64(SockLib::Helper::float64_t f)
 }
 void SockLib::Sock::sendAllBytes(const std::byte *bytes, std::size_t size)
 {
+    assert(size <= SockLib::Sock::SIZE_LIMIT);
     SockLib::Helper::sendAll(this->m_socket, reinterpret_cast<const SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
 }
 std::size_t SockLib::Sock::sendSomeBytes(const std::byte *bytes, std::size_t size)
 {
+    assert(size <= SockLib::Sock::SIZE_LIMIT);
     return SockLib::Helper::send(this->m_socket, reinterpret_cast<const SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
 }
 void SockLib::Sock::sendBool(bool b)
@@ -210,10 +212,12 @@ SockLib::Helper::float64_t SockLib::Sock::recvFloat64(void)
 }
 void SockLib::Sock::recvAllBytes(std::byte *bytes, std::size_t size)
 {
+    assert(size <= SockLib::Sock::SIZE_LIMIT);
     SockLib::Helper::recvAll(this->m_socket, reinterpret_cast<SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
 }
 std::size_t SockLib::Sock::recvSomeBytes(std::byte *bytes, std::size_t size)
 {
+    assert(size <= SockLib::Sock::SIZE_LIMIT);
     return SockLib::Helper::recv(this->m_socket, reinterpret_cast<SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
 }
 void SockLib::Sock::recvDiscard(std::size_t limit)
@@ -254,10 +258,10 @@ std::string SockLib::Sock::recvStr(void)
     this->recvAllBytes(reinterpret_cast<std::byte*>(s.data()), static_cast<std::size_t>(size));
     return s;
 }
-std::optional<std::string> SockLib::Sock::recvStrLimit(std::size_t limit)
+std::optional<std::string> SockLib::Sock::recvStrLimit(std::uint32_t limit)
 {
     std::uint32_t size = this->recvUint32();
-    if (size > static_cast<std::uint32_t>(limit)) {
+    if (size > limit) {
         this->recvDiscard(static_cast<std::size_t>(size));
         return std::nullopt;
     }
