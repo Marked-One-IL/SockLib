@@ -25,7 +25,7 @@ namespace SockLib
         void setTimeout(std::size_t ms);
         void close(void);
 
-        void                                 sendSerialized        (const SockLib::Serializer &d);
+        void                                 sendSerialized        (const SockLib::Serializer &s);
         SockLib::Deserializer                recvDeserialized      (void);
         std::optional<SockLib::Deserializer> recvDeserializedLimit (std::uint32_t limit);
 

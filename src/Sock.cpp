@@ -35,17 +35,17 @@ void SockLib::Sock::close(void)
     this->m_socket = SockLib::Helper::INVALID_SOCK;
 }
 
-void SockLib::Sock::sendSerialized(const SockLib::Serializer &d)
+void SockLib::Sock::sendSerialized(const SockLib::Serializer &s)
 {
-    this->sendUint32(static_cast<std::uint32_t>(d.m_bytes.size()));
-    this->sendAllBytes(d.getBytes(), d.getSize());
+    this->sendUint32(static_cast<std::uint32_t>(s.m_bytes.size()));
+    this->sendAllBytes(s.getBytes(), s.getSize());
 }
 SockLib::Deserializer SockLib::Sock::recvDeserialized()
 {
     std::uint32_t size = this->recvUint32();
-    SockLib::Deserializer data(static_cast<std::size_t>(size));
-    this->recvAllBytes(data.getBytes(), static_cast<std::size_t>(size));
-    return data;
+    SockLib::Deserializer d(static_cast<std::size_t>(size));
+    this->recvAllBytes(d.getBytes(), static_cast<std::size_t>(size));
+    return d;
 }
 std::optional<SockLib::Deserializer> SockLib::Sock::recvDeserializedLimit(std::uint32_t limit)
 {
@@ -55,9 +55,9 @@ std::optional<SockLib::Deserializer> SockLib::Sock::recvDeserializedLimit(std::u
         return std::nullopt;
     }
 
-    SockLib::Deserializer data(static_cast<std::size_t>(size));
-    this->recvAllBytes(data.getBytes(), static_cast<std::size_t>(size));
-    return data;
+    SockLib::Deserializer d(static_cast<std::size_t>(size));
+    this->recvAllBytes(d.getBytes(), static_cast<std::size_t>(size));
+    return d;
 }
 
 void SockLib::Sock::sendInt8(std::int8_t i)
