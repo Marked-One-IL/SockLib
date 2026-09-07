@@ -2,7 +2,8 @@
 Support windows only at the moment.<br>
 
 # CMake
-Before creating target.<br>
+Before creating target.
+- Make sure you have the directory 'third_party' in your project root.
 ```cmake
 add_subdirectory("third_party/SockLib")
 ```
