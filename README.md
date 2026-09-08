@@ -1,14 +1,14 @@
 # About
 A simple but explicit TCP socket library for C++ and Python.<br>
-- The C++ library currently only supports Windows.<br>
+- The C++ library currently only supports Windows (Linux support should be released soon).<br>
 
 # CMake
-Before creating target.
+Before creating target (Usually before add_executable).<br>
 - Make sure you have the directory 'third_party' in your project root.
 ```cmake
 add_subdirectory("third_party/SockLib")
 ```
-After creating target.<br>
+Before creating target (Usually after add_executable).<br>
 ```cmake
 target_link_libraries(${PROJECT_NAME} PRIVATE SockLib)
 ```
