@@ -8,7 +8,7 @@ Before creating target (Usually before add_executable).<br>
 ```cmake
 add_subdirectory("third_party/SockLib")
 ```
-Before creating target (Usually after add_executable).<br>
+After creating target (Usually after add_executable).<br>
 ```cmake
 target_link_libraries(${PROJECT_NAME} PRIVATE SockLib)
 ```
