@@ -152,6 +152,9 @@ int SockLib::Helper::recv(SOCKET sock, char *bytes, int size)
         throw SockLib::Exception("Failed to receive data (WSA error {})", WSAGetLastError());
     }
     if (0 == received) {
+        if (0 == size) {
+            return 0;
+        }
         throw SockLib::Exception("Failed to receive data because the session ended");
     }
     return received;
@@ -304,6 +307,9 @@ ssize_t SockLib::Helper::recv(int sock, void *bytes, std::size_t size)
         throw SockLib::Exception("Failed to receive data (errno error {})", errno);
     }
     if (0 == received) {
+        if (0 == size) {
+            return 0;
+        }
         throw SockLib::Exception("Failed to receive data because the session ended");
     }
     return received;
