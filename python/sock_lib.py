@@ -115,7 +115,7 @@ class Sock:
     def recv_deserialized_limit(self, limit: int) -> Deserializer | None:
         size: int = self.recv_uint32()
         if size > limit:
-            self.recv_discard(size)
+            self.recv_discard_bytes(size)
             return None
         return Deserializer(self.recv_all_bytes(size))
 
@@ -205,10 +205,13 @@ class Sock:
                 return bytes()
             raise Exception("Failed to receive data because the session ended")
         return b
-    def recv_discard(self, size: int):
-        sent: int = 0
-        while sent < size:
-            sent += len(self.recv_some_bytes(size - sent))
+    def recv_discard_bytes(self, size: int):
+        CHUNK: int = 4096
+        discarded: int = 0
+        while discarded < size:
+            remaining: int = size - discarded
+            amount: int = min(remaining, CHUNK)
+            discarded += len(self.recv_some_bytes(amount))
 
     def recv_bool(self) -> bool:
         return bool(self.recv_uint8())
@@ -224,7 +227,7 @@ class Sock:
     def recv_str_limit(self, limit: int) -> str | None:
         size: int = self.recv_uint32()
         if size > limit:
-            self.recv_discard(size)
+            self.recv_discard_bytes(size)
             return None
         return self.recv_all_bytes(size).decode()
 
