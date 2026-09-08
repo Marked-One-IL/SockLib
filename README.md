@@ -1,5 +1,5 @@
 # About
-A simple but explicit TCP socket library for C++.
+A simple but explicit TCP socket library for C++ and Python.
 
 - Supports Windows only at the moment.<br>
 
