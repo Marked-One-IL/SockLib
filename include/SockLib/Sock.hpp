@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SOCK_LIB_SOCK
+#define SOCK_LIB_SOCK
 #include <SockLib/Helper.hpp>
 #include <SockLib/Serializer.hpp>
 #include <SockLib/Deserializer.hpp>
@@ -11,7 +12,7 @@ namespace SockLib
     class Sock
     {
     public:
-        inline static constexpr std::size_t SIZE_LIMIT = static_cast<std::size_t>(INT_MAX);
+        inline static constexpr std::size_t SIZE_LIMIT = 2147483647;
         inline static constexpr const char *LOCALHOST = "127.0.0.1";
 
         ~Sock(void);
@@ -79,3 +80,4 @@ namespace SockLib
         friend class SockLib::Server;
     };
 }
+#endif // SOCK_LIB_SOCK

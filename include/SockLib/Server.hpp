@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SOCK_LIB_SERVER
+#define SOCK_LIB_SERVER
 #include <cstdint>
 #include <SockLib/Helper.hpp>
 #include <SockLib/Sock.hpp>
@@ -15,3 +16,4 @@ namespace SockLib
         SockLib::Sock m_sock;
     };
 }
+#endif // SOCK_LIB_SERVER

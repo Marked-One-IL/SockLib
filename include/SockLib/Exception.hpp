@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SOCK_LIB_EXCEPTION
+#define SOCK_LIB_EXCEPTION
 #include <iostream>
 #include <stdexcept>
 #include <format>
@@ -26,3 +27,4 @@ inline SockLib::Exception::Exception(std::format_string<Args...> fmt, Args&&... 
     std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
 {
 }
+#endif // SOCK_LIB_EXCEPTION

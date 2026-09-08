@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SOCK_LIB_SERIALIZER
+#define SOCK_LIB_SERIALIZER
 #include <SockLib/Helper.hpp>
 #include <vector>
 #include <string_view>
@@ -45,3 +46,4 @@ namespace SockLib
         friend class SockLib::Sock;
     };
 }
+#endif // SOCK_LIB_SERIALIZER

@@ -28,7 +28,7 @@ SockLib::Sock &SockLib::Sock::operator = (SockLib::Sock &&other) noexcept(true)
 void SockLib::Sock::setTimeout(std::size_t ms)
 {
     assert(ms <= SockLib::Sock::SIZE_LIMIT);
-    SockLib::Helper::setTimeout(this->m_socket, ms);
+    SockLib::Helper::setTimeout(this->m_socket, static_cast<SockLib::Helper::TimeoutType>(ms));
 }
 void SockLib::Sock::close(void)
 {
@@ -119,7 +119,8 @@ void SockLib::Sock::sendAllBytes(const std::byte *bytes, std::size_t size)
 std::size_t SockLib::Sock::sendSomeBytes(const std::byte *bytes, std::size_t size)
 {
     assert(size <= SockLib::Sock::SIZE_LIMIT);
-    return SockLib::Helper::send(this->m_socket, reinterpret_cast<const SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
+    return static_cast<std::size_t>(SockLib::Helper::send(this->m_socket, reinterpret_cast<const SockLib::Helper::Byte*>(bytes),
+           static_cast<SockLib::Helper::Size>(size)));
 }
 void SockLib::Sock::sendBool(bool b)
 {
@@ -219,7 +220,8 @@ void SockLib::Sock::recvAllBytes(std::byte *bytes, std::size_t size)
 std::size_t SockLib::Sock::recvSomeBytes(std::byte *bytes, std::size_t size)
 {
     assert(size <= SockLib::Sock::SIZE_LIMIT);
-    return SockLib::Helper::recv(this->m_socket, reinterpret_cast<SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
+    return static_cast<std::size_t>(SockLib::Helper::recv(this->m_socket, reinterpret_cast<SockLib::Helper::Byte*>(bytes),
+           static_cast<SockLib::Helper::Size>(size)));
 }
 void SockLib::Sock::recvDiscard(std::size_t limit)
 {

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef SOCK_LIB_DESERIALIZER
+#define SOCK_LIB_DESERIALIZER
 #include <SockLib/Helper.hpp>
 #include <memory>
 #include <string>
@@ -48,3 +49,4 @@ namespace SockLib
         friend class SockLib::Sock;
     };
 }
+#endif // SOCK_LIB_DESERIALIZER

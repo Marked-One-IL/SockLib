@@ -1,6 +1,6 @@
 # About
 A simple but explicit TCP socket library for C++ and Python.<br>
-- The C++ library currently only supports Windows (Linux support should be released soon).<br>
+- The C++ library support Windows and Linux (Mac is supported but untested).<br>
 
 # CMake
 Before creating target (Usually before add_executable).<br>
@@ -28,7 +28,7 @@ int main()
     try
     {
 #ifdef SERVER
-        SockLib::Server server (80, true);
+        SockLib::Server server (8080, true);
         SockLib::Sock sock = server.accept();
         SockLib::Serializer s;
         s.serializeBool(true);
@@ -37,7 +37,7 @@ int main()
         sock.sendSerialized(s);
         std::cout << sock.recvInt16() << '\n';
 #else // CLIENT
-        SockLib::Sock sock = SockLib::Sock::connect(SockLib::Sock::LOCALHOST, 80);
+        SockLib::Sock sock = SockLib::Sock::connect(SockLib::Sock::LOCALHOST, 8080);
         SockLib::Deserializer d = sock.recvDeserialized();
         std::cout << d.deserializeBool() << '\n';
         std::cout << d.deserializeFloat64() << '\n';
@@ -61,7 +61,7 @@ SERVER = False
 def main():
     try:
         if SERVER:
-            server = sock_lib.Server(80, True)
+            server = sock_lib.Server(8080, True)
             sock = server.accept()
             s = sock_lib.Serializer()
             s.serialize_bool(True)
@@ -70,7 +70,7 @@ def main():
             sock.send_serialized(s)
             print(sock.recv_int8())
         else: # CLIENT
-            sock = sock_lib.Sock.connect(sock_lib.Sock.LOCAL_HOST, 80)
+            sock = sock_lib.Sock.connect(sock_lib.Sock.LOCAL_HOST, 8080)
             d = sock.recv_deserialized()
             print(d.deserialize_bool())
             print(d.deserialize_float64())
