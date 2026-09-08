@@ -9,7 +9,9 @@
 # Keep those directories.
 !/include/
 !/src/
+!/python_sub_lib/
 
 # Keep the contents of those directories.
 !/include/**
 !/src/**
+!/python_sub_lib/**
