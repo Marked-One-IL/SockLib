@@ -190,6 +190,8 @@ class Sock:
             t: bytes = self._sock.recv(size - sent)
             received: int = len(t)
             if received == 0:
+                if size == 0:
+                    return bytes()
                 raise Exception("Failed to receive data because the session ended")
             sent += received
             b += t
@@ -199,6 +201,8 @@ class Sock:
             raise Exception("size > Sock.SIZE_LIMIT")
         b: bytes = self._sock.recv(size)
         if len(b) == 0:
+            if size == 0:
+                return bytes()
             raise Exception("Failed to receive data because the session ended")
         return b
     def recv_discard(self, size: int):

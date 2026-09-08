@@ -1,6 +1,6 @@
 # About
 A simple but explicit TCP socket library for C++ and Python.<br>
-- The C++ library support Windows and Linux (Mac is supported but untested).<br>
+- The C++ library support Windows, Linux and Mac.<br>
 
 # CMake
 Before creating target.<br>
@@ -68,7 +68,7 @@ def main():
             s.serialize_float64(25.25)
             s.serialize_str("Hello, World!")
             sock.send_serialized(s)
-            print(sock.recv_int8())
+            print(sock.recv_int16())
         else: # CLIENT
             sock = sock_lib.Sock.connect(sock_lib.Sock.LOCAL_HOST, 8080)
             d = sock.recv_deserialized()

@@ -52,7 +52,7 @@ std::optional<SockLib::Deserializer> SockLib::Sock::recvDeserializedLimit(std::u
 {
     std::uint32_t size = this->recvUint32();
     if (size > limit) {
-        this->recvDiscard(static_cast<std::size_t>(size));
+        this->recvDiscardBytes(static_cast<std::size_t>(size));
         return std::nullopt;
     }
 
@@ -223,15 +223,15 @@ std::size_t SockLib::Sock::recvSomeBytes(std::byte *bytes, std::size_t size)
     return static_cast<std::size_t>(SockLib::Helper::recv(this->m_socket, reinterpret_cast<SockLib::Helper::Byte*>(bytes),
            static_cast<SockLib::Helper::Size>(size)));
 }
-void SockLib::Sock::recvDiscard(std::size_t limit)
+void SockLib::Sock::recvDiscardBytes(std::size_t size)
 {
     constexpr std::size_t CHUNK = 4096;
     std::byte trash[CHUNK];
 
     std::size_t discarded = 0;
-    while (discarded < limit) 
+    while (discarded < size) 
     {
-        const std::size_t remaining = limit - discarded;
+        const std::size_t remaining = size - discarded;
         const std::size_t amount = std::min(remaining, CHUNK);
 
         discarded += this->recvSomeBytes(trash, amount);
@@ -265,7 +265,7 @@ std::optional<std::string> SockLib::Sock::recvStrLimit(std::uint32_t limit)
 {
     std::uint32_t size = this->recvUint32();
     if (size > limit) {
-        this->recvDiscard(static_cast<std::size_t>(size));
+        this->recvDiscardBytes(static_cast<std::size_t>(size));
         return std::nullopt;
     }
 

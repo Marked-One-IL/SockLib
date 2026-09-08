@@ -49,19 +49,19 @@ namespace SockLib
         void sendFloat (float            f);
         void sendStr   (std::string_view s);
 
-        std::int8_t                recvInt8      (void);
-        std::uint8_t               recvUint8     (void);
-        std::int16_t               recvInt16     (void);
-        std::uint16_t              recvUint16    (void);
-        std::int32_t               recvInt32     (void);
-        std::uint32_t              recvUint32    (void);
-        std::int64_t               recvInt64     (void);
-        std::uint64_t              recvUint64    (void);
-        SockLib::Helper::float32_t recvFloat32   (void);
-        SockLib::Helper::float64_t recvFloat64   (void);
-        void                       recvAllBytes  (std::byte *bytes, std::size_t size);
-        std::size_t                recvSomeBytes (std::byte *bytes, std::size_t size);
-        void                       recvDiscard   (std::size_t limit);
+        std::int8_t                recvInt8         (void);
+        std::uint8_t               recvUint8        (void);
+        std::int16_t               recvInt16        (void);
+        std::uint16_t              recvUint16       (void);
+        std::int32_t               recvInt32        (void);
+        std::uint32_t              recvUint32       (void);
+        std::int64_t               recvInt64        (void);
+        std::uint64_t              recvUint64       (void);
+        SockLib::Helper::float32_t recvFloat32      (void);
+        SockLib::Helper::float64_t recvFloat64      (void);
+        void                       recvAllBytes     (std::byte *bytes, std::size_t size);
+        std::size_t                recvSomeBytes    (std::byte *bytes, std::size_t size);
+        void                       recvDiscardBytes (std::size_t size);
 
         bool                       recvBool       (void);
         char                       recvChar       (void);
