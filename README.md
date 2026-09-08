@@ -59,6 +59,7 @@ import sock_lib
 SERVER = False
 
 def main():
+try:
     if SERVER:
         server = sock_lib.Server(80, True)
         sock = server.accept()
@@ -75,6 +76,8 @@ def main():
         print(d.deserialize_float64())
         print(d.deserialize_str())
         sock.send_int16(101)
+except Exception as e:
+    print(e)
 
 if __name__ == "__main__":
     main()
