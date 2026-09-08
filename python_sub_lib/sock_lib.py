@@ -48,45 +48,35 @@ class Deserializer:
         self._current: int = 0
 
     def deserialize_int8(self) -> int:
-        i = struct.unpack_from("<b", self._bytes, self._current)[0]
-        self._current += 1
+        i = struct.unpack("<b", self.deserialize_bytes(1))[0]
         return i 
     def deserialize_uint8(self) -> int:
-        i = struct.unpack_from("<B", self._bytes, self._current)[0]
-        self._current += 1
+        i = struct.unpack("<B", self.deserialize_bytes(1))[0]
         return i
     def deserialize_int16(self) -> int:
-        i = struct.unpack_from("<h", self._bytes, self._current)[0]
-        self._current += 2
+        i = struct.unpack("<h", self.deserialize_bytes(2))[0]
         return i
     def deserialize_uint16(self) -> int:
-        i = struct.unpack_from("<H", self._bytes, self._current)[0]
-        self._current += 2
+        i = struct.unpack("<H", self.deserialize_bytes(2))[0]
         return i
     def deserialize_int32(self) -> int:
-        i = struct.unpack_from("<i", self._bytes, self._current)[0]
-        self._current += 4
+        i = struct.unpack("<i", self.deserialize_bytes(4))[0]
         return i
     def deserialize_uint32(self) -> int:
-        i = struct.unpack_from("<I", self._bytes, self._current)[0]
-        self._current += 4
+        i = struct.unpack("<I", self.deserialize_bytes(4))[0]
         return i
     def deserialize_int64(self) -> int:
-        i = struct.unpack_from("<q", self._bytes, self._current)[0]
-        self._current += 8
+        i = struct.unpack("<q", self.deserialize_bytes(8))[0]
         return i
     def deserialize_uint64(self) -> int:
-        i = struct.unpack_from("<Q", self._bytes, self._current)[0]
-        self._current += 8
+        i = struct.unpack("<Q", self.deserialize_bytes(8))[0]
         return i
     def deserialize_float32(self) -> float:
-        i = struct.unpack_from("<f", self._bytes, self._current)[0]
-        self._current += 4
-        return i
+        f = struct.unpack("<f", self.deserialize_bytes(4))[0]
+        return f
     def deserialize_float64(self) -> float:
-        i = struct.unpack_from("<d", self._bytes, self._current)[0]
-        self._current += 8
-        return i
+        f = struct.unpack("<d", self.deserialize_bytes(8))[0]
+        return f
     def deserialize_bytes(self, size: int) -> bytes:
         b = self._bytes[self._current: self._current + size]
         self._current += size
