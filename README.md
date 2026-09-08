@@ -59,25 +59,25 @@ import sock_lib
 SERVER = False
 
 def main():
-try:
-    if SERVER:
-        server = sock_lib.Server(80, True)
-        sock = server.accept()
-        s = sock_lib.Serializer()
-        s.serialize_bool(True)
-        s.serialize_float64(25.25)
-        s.serialize_str("Hello, World!")
-        sock.send_serialized(s)
-        print(sock.recv_int8())
-    else: # CLIENT
-        sock = sock_lib.Sock.connect(sock_lib.Sock.LOCAL_HOST, 80)
-        d = sock.recv_deserialized()
-        print(d.deserialize_bool())
-        print(d.deserialize_float64())
-        print(d.deserialize_str())
-        sock.send_int16(101)
-except Exception as e:
-    print(e)
+    try:
+        if SERVER:
+            server = sock_lib.Server(80, True)
+            sock = server.accept()
+            s = sock_lib.Serializer()
+            s.serialize_bool(True)
+            s.serialize_float64(25.25)
+            s.serialize_str("Hello, World!")
+            sock.send_serialized(s)
+            print(sock.recv_int8())
+        else: # CLIENT
+            sock = sock_lib.Sock.connect(sock_lib.Sock.LOCAL_HOST, 80)
+            d = sock.recv_deserialized()
+            print(d.deserialize_bool())
+            print(d.deserialize_float64())
+            print(d.deserialize_str())
+            sock.send_int16(101)
+    except Exception as e:
+        print(e)
 
 if __name__ == "__main__":
     main()
