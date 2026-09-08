@@ -27,6 +27,7 @@ SockLib::Sock &SockLib::Sock::operator = (SockLib::Sock &&other) noexcept(true)
 
 void SockLib::Sock::setTimeout(std::size_t ms)
 {
+    assert(ms <= SockLib::Sock::SIZE_LIMIT);
     SockLib::Helper::setTimeout(this->m_socket, ms);
 }
 void SockLib::Sock::close(void)
