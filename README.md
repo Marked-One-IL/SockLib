@@ -20,6 +20,7 @@ target_link_libraries(TARGET_NAME PRIVATE SockLib)
 #include <SockLib/Server.hpp>
 #include <SockLib/Serializer.hpp>
 #include <SockLib/Deserializer.hpp>
+#include <SockLib/Exception.hpp>
 
 // #define SERVER
 
@@ -45,7 +46,7 @@ int main()
         sock.sendInt16(101);
 #endif
     }
-    catch (const std::exception &e)
+    catch (const SockLib::Exception &e)
     {
         std::cerr << e.what() << '\n';
     }
