@@ -102,6 +102,12 @@ std::string SockLib::Deserializer::deserializeStrCopy(void)
     std::uint32_t size = this->deserializeUint32();
     std::string s(static_cast<std::string::size_type>(size), '\0');
     this->deserializeBytes(reinterpret_cast<std::byte*>(s.data()), static_cast<std::size_t>(size));
+    for (char c : s) {
+        if (c < '\x20' || c > '\x7E') {
+            throw SockLib::Exception("Deserialized string is malformed");
+        }
+    }
+
     return s;
 }
 std::string_view SockLib::Deserializer::deserializeStrView(void)
@@ -113,6 +119,12 @@ std::string_view SockLib::Deserializer::deserializeStrView(void)
         throw SockLib::Exception("Attempted to deserialize more data than available");
     }
     std::string_view s(reinterpret_cast<const char*>(&this->m_bytes[this->m_current]), static_cast<std::string_view::size_type>(size));
+    for (char c : s) {
+        if (c < '\x20' || c > '\x7E') {
+            throw SockLib::Exception("Deserialized string is malformed");
+        }
+    }
+
     this->m_current += static_cast<std::size_t>(size);
     return s;
 }
