@@ -3,6 +3,7 @@
 #include <SockLib/Helper.hpp>
 #include <SockLib/Serializer.hpp>
 #include <SockLib/Deserializer.hpp>
+#include <vector>
 
 namespace SockLib
 {
@@ -22,7 +23,6 @@ namespace SockLib
         Sock(SockLib::Sock &&other) noexcept(true);
         SockLib::Sock& operator = (SockLib::Sock &&other) noexcept(true);
 
-        void setTimeout(std::size_t ms);
         void close(void);
 
         void                  sendSerialized   (const SockLib::Serializer &s);
@@ -56,7 +56,7 @@ namespace SockLib
         std::uint64_t              recvUint64  (void);
         SockLib::Helper::float32_t recvFloat32 (void);
         SockLib::Helper::float64_t recvFloat64 (void);
-
+        std::vector<std::byte>     recvBytes   (std::uint32_t limit);
 
         bool        recvBool  (void);
         char        recvChar  (void);
@@ -64,14 +64,12 @@ namespace SockLib
         float       recvFloat (void);
         std::string recvStr   (std::uint32_t limit);
 
-        void        sendRawAllBytes  (const std::byte *bytes, std::size_t size);
-        std::size_t sendRawSomeBytes (const std::byte *bytes, std::size_t size);
-        void        recvRawAllBytes  (std::byte       *bytes, std::size_t size);
-        std::size_t recvRawSomeBytes (std::byte       *bytes, std::size_t size);
-
-        static SockLib::Sock connect(const char *address, std::uint16_t port);
+        static SockLib::Sock connect(const char *address, std::uint16_t port, std::size_t timeoutMS);
 
     private:
+        void sendRawAllBytes(const std::byte *bytes, std::size_t size);
+        void recvRawAllBytes(std::byte       *bytes, std::size_t size);
+
         Sock(SockLib::Helper::Sock new_socket);
         
         SockLib::Helper::Sock m_socket;

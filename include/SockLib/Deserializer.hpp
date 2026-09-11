@@ -3,6 +3,7 @@
 #include <SockLib/Helper.hpp>
 #include <memory>
 #include <string>
+#include <vector>
 #include <cstddef>
 #include <cstring>
 
@@ -27,7 +28,7 @@ namespace SockLib
         std::uint64_t              deserializeUint64  (void);
         SockLib::Helper::float32_t deserializeFloat32 (void);
         SockLib::Helper::float64_t deserializeFloat64 (void);
-        void                       deserializeBytes   (std::byte *bytes, std::size_t size);
+        std::vector<std::byte>     deserializeBytes   (void);
 
         // Simple methods.
 
@@ -39,6 +40,8 @@ namespace SockLib
         std::string_view deserializeStrView (void);
 
     private:
+        void deserializeBytesRaw (std::byte* bytes, std::size_t size);
+
         Deserializer(std::size_t size);
         std::byte *getBytes(void);
 

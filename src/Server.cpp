@@ -5,7 +5,9 @@ SockLib::Server::Server(std::uint16_t port, bool localhost) :
 {
 }
 
-SockLib::Sock SockLib::Server::accept(void)
+SockLib::Sock SockLib::Server::accept(std::size_t timeoutMS)
 {
-    return SockLib::Helper::accept(this->m_sock.m_socket);
+    SockLib::Sock sock = SockLib::Helper::accept(this->m_sock.m_socket);
+    SockLib::Helper::setTimeout(sock.m_socket, static_cast<SockLib::Helper::TimeoutType>(timeoutMS));
+    return sock;
 }

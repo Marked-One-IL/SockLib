@@ -16,8 +16,6 @@ namespace SockLib
         Serializer(void) = default;
         void reserve(std::size_t size);
         
-        // Advanced methods.
-
         void serializeInt8    (std::int8_t                i);
         void serializeUint8   (std::uint8_t               i);
         void serializeInt16   (std::int16_t               i);
@@ -30,8 +28,6 @@ namespace SockLib
         void serializeFloat64 (SockLib::Helper::float64_t f);
         void serializeBytes   (const std::byte *bytes, std::size_t size);
 
-        // Simple methods.
-
         void serializeBool  (bool             b);
         void serializeChar  (char             c);
         void serializeInt   (int              i);
@@ -39,6 +35,8 @@ namespace SockLib
         void serializeStr   (std::string_view s);
 
     private:
+        void serializeBytesRaw (const std::byte *bytes, std::size_t size);
+
         const std::byte *getBytes (void) const;
         std::size_t      getSize  (void) const;
 

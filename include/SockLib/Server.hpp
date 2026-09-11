@@ -10,7 +10,7 @@ namespace SockLib
     {
     public:
         Server(std::uint16_t port, bool localhost);
-        SockLib::Sock accept(void);
+        SockLib::Sock accept(std::size_t timeoutMS);
 
     private:
         SockLib::Sock m_sock;
