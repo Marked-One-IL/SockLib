@@ -1,5 +1,6 @@
 #include <SockLib/Deserializer.hpp>
 #include <SockLib/Exception.hpp>
+#include <SockLib/Sock.hpp>
 #include <cstring>
 
 std::int8_t SockLib::Deserializer::deserializeInt8(void)
@@ -61,6 +62,10 @@ SockLib::Helper::float32_t SockLib::Deserializer::deserializeFloat32(void)
     std::uint32_t i = this->deserializeUint32();
     SockLib::Helper::float32_t f{};
     std::memcpy(&f, &i, sizeof(f));
+    if (!std::isfinite(f)) {
+        this->m_originSock.close();
+        throw SockLib::Exception("Deserialized float32_t is malformed");
+    }
     return f;
 }
 SockLib::Helper::float64_t SockLib::Deserializer::deserializeFloat64(void)
@@ -68,6 +73,10 @@ SockLib::Helper::float64_t SockLib::Deserializer::deserializeFloat64(void)
     std::uint64_t i = this->deserializeUint64();
     SockLib::Helper::float64_t f{};
     std::memcpy(&f, &i, sizeof(f));
+    if (!std::isfinite(f)) {
+        this->m_originSock.close();
+        throw SockLib::Exception("Deserialized float64_t is malformed");
+    }
     return f;
 }
 std::vector<std::byte> SockLib::Deserializer::deserializeBytes(void)
@@ -80,7 +89,12 @@ std::vector<std::byte> SockLib::Deserializer::deserializeBytes(void)
 
 bool SockLib::Deserializer::deserializeBool(void)
 {
-    return static_cast<bool>(this->deserializeUint8());
+    std::uint8_t i = this->deserializeUint8();
+    if (i > 1) {
+        this->m_originSock.close();
+        throw SockLib::Exception("Deserialized bool is malformed");
+    }
+    return i != 0;
 }
 char SockLib::Deserializer::deserializeChar(void)
 {
@@ -99,8 +113,10 @@ std::string SockLib::Deserializer::deserializeStrCopy(void)
     std::uint32_t size = this->deserializeUint32();
     std::string s(static_cast<std::string::size_type>(size), '\0');
     this->deserializeBytesRaw(reinterpret_cast<std::byte*>(s.data()), static_cast<std::size_t>(size));
-    for (char c : s) {
-        if (c < '\x20' || c > '\x7E') {
+    for (auto c : s) {
+        unsigned char uc = static_cast<unsigned char>(c);
+        if (uc < '\x20' || uc > '\x7E') {
+            this->m_originSock.close();
             throw SockLib::Exception("Deserialized string is malformed");
         }
     }
@@ -111,11 +127,14 @@ std::string_view SockLib::Deserializer::deserializeStrView(void)
 {
     std::uint32_t size = this->deserializeUint32();
     if ((this->m_totalSize < this->m_current) || ((this->m_totalSize -  this->m_current) < static_cast<std::size_t>(size))) {
+        this->m_originSock.close();
         throw SockLib::Exception("Attempted to deserialize more data than available");
     }
     std::string_view s(reinterpret_cast<const char*>(&this->m_bytes[this->m_current]), static_cast<std::string_view::size_type>(size));
-    for (char c : s) {
-        if (c < '\x20' || c > '\x7E') {
+    for (auto c : s) {
+        unsigned char uc = static_cast<unsigned char>(c);
+        if (uc < '\x20' || uc > '\x7E') {
+            this->m_originSock.close();
             throw SockLib::Exception("Deserialized string is malformed");
         }
     }
@@ -127,14 +146,15 @@ std::string_view SockLib::Deserializer::deserializeStrView(void)
 void SockLib::Deserializer::deserializeBytesRaw(std::byte* bytes, std::size_t size)
 {
     if ((this->m_totalSize < this->m_current) || ((this->m_totalSize - this->m_current) < size)) {
+        this->m_originSock.close();
         throw SockLib::Exception("Attempted to deserialize more data than available");
     }
     std::memcpy(bytes, &this->m_bytes[this->m_current], size);
     this->m_current += size;
 }
 
-SockLib::Deserializer::Deserializer(std::size_t size) :
-    m_bytes(std::make_unique<std::byte[]>(size)), m_totalSize(size)
+SockLib::Deserializer::Deserializer(std::size_t size, SockLib::Sock &originSock) :
+    m_bytes(std::make_unique<std::byte[]>(size)), m_totalSize(size), m_originSock(originSock)
 {
 }
 std::byte *SockLib::Deserializer::getBytes(void)

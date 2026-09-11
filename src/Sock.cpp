@@ -2,6 +2,7 @@
 #include <SockLib/Exception.hpp>
 #include <cstring>
 #include <cassert>
+#include <cmath>
 
 // These move semantics are a must if I want classes like std::vector<T> not to close sockets when reallocating.
 
@@ -50,7 +51,7 @@ SockLib::Deserializer SockLib::Sock::recvDeserialized(std::uint32_t limit)
         throw SockLib::Exception("Received deserialized data size exceeds given limit");
     }
 
-    SockLib::Deserializer d(static_cast<std::size_t>(size));
+    SockLib::Deserializer d(static_cast<std::size_t>(size), *this);
     this->recvRawAllBytes(d.getBytes(), static_cast<std::size_t>(size));
     return d;
 }
@@ -192,6 +193,10 @@ SockLib::Helper::float32_t SockLib::Sock::recvFloat32(void)
     std::uint32_t i = this->recvUint32();
     SockLib::Helper::float32_t f{};
     std::memcpy(&f, &i, sizeof(f));
+    if (!std::isfinite(f)) {
+        this->close();
+        throw SockLib::Exception("Received float32_t is malformed");
+    }
     return f;
 }
 SockLib::Helper::float64_t SockLib::Sock::recvFloat64(void)
@@ -199,6 +204,10 @@ SockLib::Helper::float64_t SockLib::Sock::recvFloat64(void)
     std::uint64_t i = this->recvUint64();
     SockLib::Helper::float64_t f{};
     std::memcpy(&f, &i, sizeof(f));
+    if (!std::isfinite(f)) {
+        this->close();
+        throw SockLib::Exception("Received float64_t is malformed");
+    }
     return f;
 }
 std::vector<std::byte> SockLib::Sock::recvBytes(std::uint32_t limit)
@@ -221,7 +230,12 @@ std::vector<std::byte> SockLib::Sock::recvBytes(std::uint32_t limit)
 
 bool SockLib::Sock::recvBool(void)
 {
-    return static_cast<bool>(this->recvUint8());
+    std::uint8_t i = this->recvUint8();
+    if (i > 1) {
+        this->close();
+        throw SockLib::Exception("Received bool is malformed");
+    }
+    return i != 0;
 }
 char SockLib::Sock::recvChar(void)
 {
@@ -250,8 +264,9 @@ std::string SockLib::Sock::recvStr(std::uint32_t limit)
     std::string s(static_cast<std::string::size_type>(size), '\0');
     this->recvRawAllBytes(reinterpret_cast<std::byte*>(s.data()), static_cast<std::size_t>(size));
 
-    for (char c : s) {
-        if (c < '\x20' || c > '\x7E') {
+    for (auto c : s) {
+        unsigned char uc = static_cast<unsigned char>(c);
+        if (uc < '\x20' || uc > '\x7E') {
             this->close();
             throw SockLib::Exception("Received string is malformed");
         }
@@ -262,23 +277,11 @@ std::string SockLib::Sock::recvStr(std::uint32_t limit)
 
 void SockLib::Sock::sendRawAllBytes(const std::byte *bytes, std::size_t size)
 {
-    try {
-        SockLib::Helper::sendAll(this->m_socket, reinterpret_cast<const SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
-    }
-    catch (const SockLib::Exception &e) {
-        this->close();
-        throw;
-    }
+    SockLib::Helper::sendAll(this->m_socket, reinterpret_cast<const SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
 }
 void SockLib::Sock::recvRawAllBytes(std::byte *bytes, std::size_t size)
 {
-    try {
-        SockLib::Helper::recvAll(this->m_socket, reinterpret_cast<SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
-    }
-    catch (const SockLib::Exception &e) {
-        this->close();
-        throw;
-    }
+    SockLib::Helper::recvAll(this->m_socket, reinterpret_cast<SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
 }
 
 SockLib::Sock SockLib::Sock::connect(const char *address, std::uint16_t port, std::size_t timeoutMS)

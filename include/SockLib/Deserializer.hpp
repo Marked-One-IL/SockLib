@@ -16,8 +16,6 @@ namespace SockLib
     public:
         Deserializer(void) = delete;
 
-        // Advanced methods.
-
         std::int8_t                deserializeInt8    (void);
         std::uint8_t               deserializeUint8   (void);
         std::int16_t               deserializeInt16   (void);
@@ -30,8 +28,6 @@ namespace SockLib
         SockLib::Helper::float64_t deserializeFloat64 (void);
         std::vector<std::byte>     deserializeBytes   (void);
 
-        // Simple methods.
-
         bool             deserializeBool    (void);
         char             deserializeChar    (void);
         int              deserializeInt     (void);
@@ -42,13 +38,14 @@ namespace SockLib
     private:
         void deserializeBytesRaw (std::byte* bytes, std::size_t size);
 
-        Deserializer(std::size_t size);
+        Deserializer(std::size_t size, SockLib::Sock &originSock);
         std::byte *getBytes(void);
 
         std::unique_ptr<std::byte[]> m_bytes;
         std::size_t m_current = 0;
         std::size_t m_totalSize;
-        
+        SockLib::Sock &m_originSock;
+
         friend class SockLib::Sock;
     };
 }

@@ -50,13 +50,13 @@ namespace SockLib
 
         static SOCKET serverInit (u_short port, bool localhost);
         static SOCKET connect    (const char *address, const char *port);
-        static SOCKET accept     (SOCKET sock);
-        static int    send       (SOCKET sock, const char *bytes, int size);
-        static void   sendAll    (SOCKET sock, const char *bytes, int size);
-        static int    recv       (SOCKET sock, char       *bytes, int size);
-        static void   recvAll    (SOCKET sock, char       *bytes, int size);
-        static void   setTimeout (SOCKET sock, int ms);
-        static void   close      (SOCKET sock);
+        static SOCKET accept     (SOCKET  sock);
+        static int    send       (SOCKET &sock, const char *bytes, int size);
+        static void   sendAll    (SOCKET &sock, const char *bytes, int size);
+        static int    recv       (SOCKET &sock, char       *bytes, int size);
+        static void   recvAll    (SOCKET &sock, char       *bytes, int size);
+        static void   setTimeout (SOCKET &sock, int ms);
+        static void   close      (SOCKET &sock);
 #elif defined(__linux__) || defined(__APPLE__)
         using Size = std::size_t;
         using Byte = void;
@@ -74,13 +74,13 @@ namespace SockLib
 
         static int     serverInit (std::uint16_t port, bool localhost);
         static int     connect    (const char *address, const char *port);
-        static int     accept     (int sock);
-        static ssize_t send       (int sock, const void *bytes, std::size_t size);
-        static void    sendAll    (int sock, const void *bytes, std::size_t size);
-        static ssize_t recv       (int sock, void       *bytes, std::size_t size);
-        static void    recvAll    (int sock, void       *bytes, std::size_t size);
-        static void    setTimeout (int sock, int ms);
-        static void    close      (int sock);
+        static int     accept     (int  sock);
+        static ssize_t send       (int &sock, const void *bytes, std::size_t size);
+        static void    sendAll    (int &sock, const void *bytes, std::size_t size);
+        static ssize_t recv       (int &sock, void       *bytes, std::size_t size);
+        static void    recvAll    (int &sock, void       *bytes, std::size_t size);
+        static void    setTimeout (int &sock, int ms);
+        static void    close      (int &sock);
 #else
         // Put your unsupported platform specific code here.
 #endif

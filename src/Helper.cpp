@@ -130,54 +130,62 @@ SOCKET SockLib::Helper::accept(SOCKET sock)
     }
     return newSock;
 }
-int SockLib::Helper::send(SOCKET sock, const char *bytes, int size)
+int SockLib::Helper::send(SOCKET &sock, const char *bytes, int size)
 {
     int sent = ::send(sock, bytes, size, 0);
     if (SOCKET_ERROR == sent) {
+        SockLib::Helper::close(sock);
         throw SockLib::Exception("Failed to send data (WSA error {})", WSAGetLastError());
     }
     return sent;
 }
-void SockLib::Helper::sendAll(SOCKET sock, const char *bytes, int size)
+void SockLib::Helper::sendAll(SOCKET &sock, const char *bytes, int size)
 {
     int sent = 0;
     while (sent < size) {
         sent += SockLib::Helper::send(sock, bytes + sent, size - sent);
     }
 }
-int SockLib::Helper::recv(SOCKET sock, char *bytes, int size)
+int SockLib::Helper::recv(SOCKET &sock, char *bytes, int size)
 {
     int received = ::recv(sock, bytes, size, 0);
     if (SOCKET_ERROR == received) {
+        SockLib::Helper::close(sock);
         throw SockLib::Exception("Failed to receive data (WSA error {})", WSAGetLastError());
     }
     if (0 == received) {
         if (0 == size) {
             return 0;
         }
+        SockLib::Helper::close(sock);
         throw SockLib::Exception("Failed to receive data because the session ended");
     }
     return received;
 }
-void SockLib::Helper::recvAll(SOCKET sock, char *bytes, int size)
+void SockLib::Helper::recvAll(SOCKET &sock, char *bytes, int size)
 {
     int received = 0;
     while (received < size) {
         received += SockLib::Helper::recv(sock, bytes + received, size - received);
     }
 }
-void SockLib::Helper::setTimeout(SOCKET sock, int ms)
+void SockLib::Helper::setTimeout(SOCKET &sock, int ms)
 {
     if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&ms), static_cast<int>(sizeof(ms)))) {
+        SockLib::Helper::close(sock);
         throw SockLib::Exception("Failed to set receive timeout (WSA error {})", WSAGetLastError());
     }
     if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&ms), static_cast<int>(sizeof(ms)))) {
+        SockLib::Helper::close(sock);
         throw SockLib::Exception("Failed to set send timeout (WSA error {})", WSAGetLastError());
     }
 }
-void SockLib::Helper::close(SOCKET sock)
+void SockLib::Helper::close(SOCKET &sock)
 {
-    closesocket(sock);
+    if (INVALID_SOCKET != sock) {
+        closesocket(sock);
+        sock = INVALID_SOCKET;
+    }
 }
 
 #elif defined(__linux__) || defined(__APPLE__)
@@ -322,22 +330,27 @@ void SockLib::Helper::recvAll(int sock, void *bytes, std::size_t size)
         received += static_cast<std::size_t>(SockLib::Helper::recv(sock, currentBytes, size - received));
     }
 }
-void SockLib::Helper::setTimeout(int sock, int ms)
+void SockLib::Helper::setTimeout(int &sock, int ms)
 {
     struct timeval tv;
     tv.tv_sec  = ms / 1000;
     tv.tv_usec = (ms % 1000) * 1000;
 
     if (-1 == setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, static_cast<socklen_t>(sizeof(tv)))) {
+        SockLib::Helper::close(sock);
         throw SockLib::Exception("Failed to set receive timeout (errno error {})", errno);
     }
     if (-1 == setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, static_cast<socklen_t>(sizeof(tv)))) {
+        SockLib::Helper::close(sock);
         throw SockLib::Exception("Failed to set send timeout (errno error {})", errno);
     }
 }
 void SockLib::Helper::close(int sock)
 {
-    ::close(sock);
+    if (-1 != sock) {
+        ::close(sock);
+        sock = -1;
+    }
 }
 #ifdef __APPLE__
 int SockLib::Helper::disableSigpipe(int sock)
