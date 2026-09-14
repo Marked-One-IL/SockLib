@@ -90,6 +90,10 @@ std::vector<std::byte> SockLib::Deserializer::deserializeBytesCopy(void)
 std::span<std::byte> SockLib::Deserializer::deserializeBytesSpan (void)
 {
     std::uint32_t size = this->deserializeUint32();
+    if ((this->m_totalSize < this->m_current) || ((this->m_totalSize - this->m_current) < static_cast<std::size_t>(size))) {
+        this->m_originSock.close();
+        throw SockLib::Exception("Attempted to deserialize more data than available");
+    }
     std::span<std::byte> s(reinterpret_cast<std::byte*>(&this->m_bytes[this->m_current]), static_cast<std::span<std::byte>::size_type>(size));
     this->m_current += static_cast<std::size_t>(size);
     return s;
