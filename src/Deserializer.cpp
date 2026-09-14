@@ -2,6 +2,7 @@
 #include <SockLib/Exception.hpp>
 #include <SockLib/Sock.hpp>
 #include <cstring>
+#include <cmath>
 
 std::int8_t SockLib::Deserializer::deserializeInt8(void)
 {
