@@ -74,7 +74,7 @@ namespace SockLib
     private:
         void                   sendRawAllBytes (const std::byte *bytes, std::size_t size);
         void                   recvRawAllBytes (std::byte       *bytes, std::size_t size);
-        std::vector<std::byte> recvBytes       (std::uint32_t limit);
+        std::vector<std::byte> recvBytes       (std::size_t limit);
 
         Sock(SockLib::Helper::Sock new_socket);
         
