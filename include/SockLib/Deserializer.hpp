@@ -3,8 +3,8 @@
 #include <SockLib/Helper.hpp>
 #include <memory>
 #include <string>
-#include <cstddef>
-#include <cstring>
+#include <vector>
+#include <span>
 
 namespace SockLib
 {
@@ -15,21 +15,18 @@ namespace SockLib
     public:
         Deserializer(void) = delete;
 
-        // Advanced methods.
-
-        std::int8_t                deserializeInt8    (void);
-        std::uint8_t               deserializeUint8   (void);
-        std::int16_t               deserializeInt16   (void);
-        std::uint16_t              deserializeUint16  (void);
-        std::int32_t               deserializeInt32   (void);
-        std::uint32_t              deserializeUint32  (void);
-        std::int64_t               deserializeInt64   (void);
-        std::uint64_t              deserializeUint64  (void);
-        SockLib::Helper::float32_t deserializeFloat32 (void);
-        SockLib::Helper::float64_t deserializeFloat64 (void);
-        void                       deserializeBytes   (std::byte *bytes, std::size_t size);
-
-        // Simple methods.
+        std::int8_t                deserializeInt8      (void);
+        std::uint8_t               deserializeUint8     (void);
+        std::int16_t               deserializeInt16     (void);
+        std::uint16_t              deserializeUint16    (void);
+        std::int32_t               deserializeInt32     (void);
+        std::uint32_t              deserializeUint32    (void);
+        std::int64_t               deserializeInt64     (void);
+        std::uint64_t              deserializeUint64    (void);
+        SockLib::Helper::float32_t deserializeFloat32   (void);
+        SockLib::Helper::float64_t deserializeFloat64   (void);
+        std::vector<std::byte>     deserializeBytesCopy (void);
+        std::span<std::byte>       deserializeBytesSpan (void);
 
         bool             deserializeBool    (void);
         char             deserializeChar    (void);
@@ -39,13 +36,16 @@ namespace SockLib
         std::string_view deserializeStrView (void);
 
     private:
-        Deserializer(std::size_t size);
+        void deserializeBytesRaw (std::byte* bytes, std::size_t size);
+        
+        Deserializer(std::size_t size, SockLib::Sock &originSock);
         std::byte *getBytes(void);
 
         std::unique_ptr<std::byte[]> m_bytes;
         std::size_t m_current = 0;
         std::size_t m_totalSize;
-        
+        SockLib::Sock &m_originSock; // This allows us to close the socket. If the deserialized data is unsafe to use.
+
         friend class SockLib::Sock;
     };
 }

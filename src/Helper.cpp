@@ -21,46 +21,33 @@ SockLib::Helper::StaticSocketInitAndDestroyer SockLib::Helper::g_staticSocketIni
 std::uint16_t SockLib::Helper::normalizeUint16(std::uint16_t i)
 {
     if constexpr (std::endian::native == std::endian::big) {
-        return SockLib::Helper::uint16BitsSwap(i);
+        return (i >> 8) | (i << 8);
     }
     return i;
 }
 std::uint32_t SockLib::Helper::normalizeUint32(std::uint32_t i)
 {
     if constexpr (std::endian::native == std::endian::big) {
-        return SockLib::Helper::uint32BitsSwap(i);
+        return ((i & 0x000000FFu) << 24) | 
+               ((i & 0x0000FF00u) << 8)  |
+               ((i & 0x00FF0000u) >> 8)  |
+               ((i & 0xFF000000u) >> 24);
     }
     return i;
 }
 std::uint64_t SockLib::Helper::normalizeUint64(std::uint64_t i)
 {
     if constexpr (std::endian::native == std::endian::big) {
-        return SockLib::Helper::uint64BitsSwap(i);
+        return ((i & 0x00000000000000FFULL) << 56) |
+               ((i & 0x000000000000FF00ULL) << 40) |
+               ((i & 0x0000000000FF0000ULL) << 24) |
+               ((i & 0x00000000FF000000ULL) << 8)  |
+               ((i & 0x000000FF00000000ULL) >> 8)  |
+               ((i & 0x0000FF0000000000ULL) >> 24) |
+               ((i & 0x00FF000000000000ULL) >> 40) |
+               ((i & 0xFF00000000000000ULL) >> 56);
     }
     return i;
-}
-
-std::uint16_t SockLib::Helper::uint16BitsSwap(std::uint16_t i)
-{
-    return (i >> 8) | (i << 8);
-}
-std::uint32_t SockLib::Helper::uint32BitsSwap(std::uint32_t i)
-{
-    return ((i & 0x000000FFu) << 24) | 
-           ((i & 0x0000FF00u) << 8)  |
-           ((i & 0x00FF0000u) >> 8)  |
-           ((i & 0xFF000000u) >> 24);
-}
-std::uint64_t SockLib::Helper::uint64BitsSwap(std::uint64_t i)
-{
-    return ((i & 0x00000000000000FFULL) << 56) |
-           ((i & 0x000000000000FF00ULL) << 40) |
-           ((i & 0x0000000000FF0000ULL) << 24) |
-           ((i & 0x00000000FF000000ULL) << 8)  |
-           ((i & 0x000000FF00000000ULL) >> 8)  |
-           ((i & 0x0000FF0000000000ULL) >> 24) |
-           ((i & 0x00FF000000000000ULL) >> 40) |
-           ((i & 0xFF00000000000000ULL) >> 56);
 }
 
 #ifdef _WIN32
@@ -130,54 +117,66 @@ SOCKET SockLib::Helper::accept(SOCKET sock)
     }
     return newSock;
 }
-int SockLib::Helper::send(SOCKET sock, const char *bytes, int size)
+int SockLib::Helper::send(SOCKET &sock, const char *bytes, int size)
 {
     int sent = ::send(sock, bytes, size, 0);
     if (SOCKET_ERROR == sent) {
-        throw SockLib::Exception("Failed to send data (WSA error {})", WSAGetLastError());
+		int err = WSAGetLastError();
+        SockLib::Helper::close(sock);
+        throw SockLib::Exception("Failed to send data (WSA error {})", err);
     }
     return sent;
 }
-void SockLib::Helper::sendAll(SOCKET sock, const char *bytes, int size)
+void SockLib::Helper::sendAll(SOCKET &sock, const char *bytes, int size)
 {
     int sent = 0;
     while (sent < size) {
         sent += SockLib::Helper::send(sock, bytes + sent, size - sent);
     }
 }
-int SockLib::Helper::recv(SOCKET sock, char *bytes, int size)
+int SockLib::Helper::recv(SOCKET &sock, char *bytes, int size)
 {
     int received = ::recv(sock, bytes, size, 0);
     if (SOCKET_ERROR == received) {
-        throw SockLib::Exception("Failed to receive data (WSA error {})", WSAGetLastError());
+		int err = WSAGetLastError();
+        SockLib::Helper::close(sock);
+        throw SockLib::Exception("Failed to receive data (WSA error {})", err);
     }
     if (0 == received) {
         if (0 == size) {
             return 0;
         }
+        SockLib::Helper::close(sock);
         throw SockLib::Exception("Failed to receive data because the session ended");
     }
     return received;
 }
-void SockLib::Helper::recvAll(SOCKET sock, char *bytes, int size)
+void SockLib::Helper::recvAll(SOCKET &sock, char *bytes, int size)
 {
     int received = 0;
     while (received < size) {
         received += SockLib::Helper::recv(sock, bytes + received, size - received);
     }
 }
-void SockLib::Helper::setTimeout(SOCKET sock, int ms)
+void SockLib::Helper::setTimeout(SOCKET &sock, int ms)
 {
     if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&ms), static_cast<int>(sizeof(ms)))) {
-        throw SockLib::Exception("Failed to set receive timeout (WSA error {})", WSAGetLastError());
+		int err = WSAGetLastError();
+        SockLib::Helper::close(sock);
+        throw SockLib::Exception("Failed to set receive timeout (WSA error {})", err);
     }
     if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&ms), static_cast<int>(sizeof(ms)))) {
-        throw SockLib::Exception("Failed to set send timeout (WSA error {})", WSAGetLastError());
+		int err = WSAGetLastError();
+        SockLib::Helper::close(sock);
+        throw SockLib::Exception("Failed to set send timeout (WSA error {})", err);
     }
 }
-void SockLib::Helper::close(SOCKET sock)
+void SockLib::Helper::close(SOCKET &sock)
 {
-    closesocket(sock);
+    if (INVALID_SOCKET != sock) {
+        closesocket(sock);
+        sock = INVALID_SOCKET;
+    }
 }
 
 #elif defined(__linux__) || defined(__APPLE__)
@@ -195,20 +194,27 @@ int SockLib::Helper::serverInit(std::uint16_t port, bool localhost)
     }
 #endif
 
+    int enableReuseaddr = 1;
+    if (-1 == setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &enableReuseaddr, sizeof(enableReuseaddr))) {
+        int err2 = errno;
+        ::close(sock);
+        throw SockLib::Exception("Failed to set SO_REUSEADDR (errno error {})", err2);
+    }
+
     sockaddr_in serverAddress{};
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = htonl(localhost ? INADDR_LOOPBACK : INADDR_ANY);
     serverAddress.sin_port = htons(port);
 
     if (-1 == bind(sock, (sockaddr*)&serverAddress, static_cast<socklen_t>(sizeof(serverAddress)))) {
-        int err = errno;
+        int err2 = errno;
         ::close(sock);
-        throw SockLib::Exception("Failed to bind server on port '{}' (errno error {})", port, err);
+        throw SockLib::Exception("Failed to bind server on port '{}' (errno error {})", port, err2);
     }
     if (-1 == listen(sock, SOMAXCONN)) {
-        int err = errno;
+        int err2 = errno;
         ::close(sock);
-        throw SockLib::Exception("Failed to make server listen on port '{}' (errno error {})", port, err);
+        throw SockLib::Exception("Failed to make server listen on port '{}' (errno error {})", port, err2);
     }
 
     return sock;
@@ -276,7 +282,7 @@ int SockLib::Helper::accept(int sock)
 #endif
     return newSock;
 }
-ssize_t SockLib::Helper::send(int sock, const void *bytes, std::size_t size)
+ssize_t SockLib::Helper::send(int &sock, const void *bytes, std::size_t size)
 {
     restart:
     ssize_t sent = ::send(sock, bytes, size, SockLib::Helper::sendFlag);
@@ -284,11 +290,13 @@ ssize_t SockLib::Helper::send(int sock, const void *bytes, std::size_t size)
         if (EINTR == errno) {
             goto restart;
         }
-        throw SockLib::Exception("Failed to send data (errno error {})", errno);
+		int err = errno;
+        SockLib::Helper::close(sock);
+        throw SockLib::Exception("Failed to send data (errno error {})", err);
     }
     return sent;
 }
-void SockLib::Helper::sendAll(int sock, const void *bytes, std::size_t size)
+void SockLib::Helper::sendAll(int &sock, const void *bytes, std::size_t size)
 {
     std::size_t sent = 0;
     while (sent < size) {
@@ -296,7 +304,7 @@ void SockLib::Helper::sendAll(int sock, const void *bytes, std::size_t size)
         sent += static_cast<std::size_t>(SockLib::Helper::send(sock, currentBytes, size - sent));
     }
 }
-ssize_t SockLib::Helper::recv(int sock, void *bytes, std::size_t size)
+ssize_t SockLib::Helper::recv(int &sock, void *bytes, std::size_t size)
 {    
     restart:
     ssize_t received = ::recv(sock, bytes, size, 0);
@@ -304,17 +312,20 @@ ssize_t SockLib::Helper::recv(int sock, void *bytes, std::size_t size)
         if (EINTR == errno) {
             goto restart;
         }
-        throw SockLib::Exception("Failed to receive data (errno error {})", errno);
+		int err = errno;
+        SockLib::Helper::close(sock);
+        throw SockLib::Exception("Failed to receive data (errno error {})", err);
     }
     if (0 == received) {
         if (0 == size) {
             return 0;
         }
+        SockLib::Helper::close(sock);
         throw SockLib::Exception("Failed to receive data because the session ended");
     }
     return received;
 }
-void SockLib::Helper::recvAll(int sock, void *bytes, std::size_t size)
+void SockLib::Helper::recvAll(int &sock, void *bytes, std::size_t size)
 {
     std::size_t received = 0;
     while (received < size) {
@@ -322,22 +333,29 @@ void SockLib::Helper::recvAll(int sock, void *bytes, std::size_t size)
         received += static_cast<std::size_t>(SockLib::Helper::recv(sock, currentBytes, size - received));
     }
 }
-void SockLib::Helper::setTimeout(int sock, int ms)
+void SockLib::Helper::setTimeout(int &sock, int ms)
 {
     struct timeval tv;
     tv.tv_sec  = ms / 1000;
     tv.tv_usec = (ms % 1000) * 1000;
 
     if (-1 == setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, static_cast<socklen_t>(sizeof(tv)))) {
-        throw SockLib::Exception("Failed to set receive timeout (errno error {})", errno);
+		int err = errno;
+        SockLib::Helper::close(sock);
+        throw SockLib::Exception("Failed to set receive timeout (errno error {})", err);
     }
     if (-1 == setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, static_cast<socklen_t>(sizeof(tv)))) {
-        throw SockLib::Exception("Failed to set send timeout (errno error {})", errno);
+		int err = errno;
+        SockLib::Helper::close(sock);
+        throw SockLib::Exception("Failed to set send timeout (errno error {})", err);
     }
 }
-void SockLib::Helper::close(int sock)
+void SockLib::Helper::close(int &sock)
 {
-    ::close(sock);
+    if (-1 != sock) {
+        ::close(sock);
+        sock = -1;
+    }
 }
 #ifdef __APPLE__
 int SockLib::Helper::disableSigpipe(int sock)
