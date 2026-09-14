@@ -5,6 +5,10 @@
 #include <SockLib/Deserializer.hpp>
 #include <vector>
 
+// One of the library policies is that data that is received must be always be safe.
+// When it doesn't. We close the connection without any recovery.
+// This simplifies the process of creating a server while also making it safe by design.
+
 namespace SockLib
 {
     class Server;
@@ -18,16 +22,16 @@ namespace SockLib
 
         ~Sock(void);
 
+        // Move semantics bs for STL support.
         Sock(const SockLib::Sock &other) = delete;
         SockLib::Sock& operator = (const SockLib::Sock &other) = delete;
-
         Sock(SockLib::Sock &&other) noexcept(true);
         SockLib::Sock& operator = (SockLib::Sock &&other) noexcept(true);
 
         void close(void);
 
         void                  sendSerialized   (const SockLib::Serializer &s);
-        SockLib::Deserializer recvDeserialized (std::uint32_t limit);
+        SockLib::Deserializer recvDeserialized (std::size_t limit);
 
         void sendInt8    (std::int8_t                            i);
         void sendUint8   (std::uint8_t                           i);
@@ -47,29 +51,30 @@ namespace SockLib
         void sendFloat (float            f);
         void sendStr   (std::string_view s);
 
-        std::int8_t                recvInt8    (void);
-        std::uint8_t               recvUint8   (void);
-        std::int16_t               recvInt16   (void);
-        std::uint16_t              recvUint16  (void);
-        std::int32_t               recvInt32   (void);
-        std::uint32_t              recvUint32  (void);
-        std::int64_t               recvInt64   (void);
-        std::uint64_t              recvUint64  (void);
-        SockLib::Helper::float32_t recvFloat32 (void);
-        SockLib::Helper::float64_t recvFloat64 (void);
-        std::vector<std::byte>     recvBytes   (std::uint32_t limit);
+        std::int8_t                recvInt8       (void);
+        std::uint8_t               recvUint8      (void);
+        std::int16_t               recvInt16      (void);
+        std::uint16_t              recvUint16     (void);
+        std::int32_t               recvInt32      (void);
+        std::uint32_t              recvUint32     (void);
+        std::int64_t               recvInt64      (void);
+        std::uint64_t              recvUint64     (void);
+        SockLib::Helper::float32_t recvFloat32    (void);
+        SockLib::Helper::float64_t recvFloat64    (void);
+        std::vector<std::byte>     recvBytesLimit (std::size_t limit);
 
         bool        recvBool  (void);
         char        recvChar  (void);
         int         recvInt   (void);
         float       recvFloat (void);
-        std::string recvStr   (std::uint32_t limit);
+        std::string recvStr   (std::size_t limit);
 
         static SockLib::Sock connect(const char *address, std::uint16_t port, std::size_t timeoutMS);
 
     private:
-        void sendRawAllBytes    (const std::byte *bytes, std::size_t size);
-        void recvRawAllBytes    (std::byte       *bytes, std::size_t size);
+        void                   sendRawAllBytes (const std::byte *bytes, std::size_t size);
+        void                   recvRawAllBytes (std::byte       *bytes, std::size_t size);
+        std::vector<std::byte> recvBytes       (std::uint32_t limit);
 
         Sock(SockLib::Helper::Sock new_socket);
         

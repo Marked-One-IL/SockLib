@@ -62,7 +62,7 @@ SockLib::Helper::float32_t SockLib::Deserializer::deserializeFloat32(void)
     std::uint32_t i = this->deserializeUint32();
     SockLib::Helper::float32_t f{};
     std::memcpy(&f, &i, sizeof(f));
-    if (!std::isfinite(f)) {
+    if (!std::isfinite(f)) { // We ignore nan, inf and ect.
         this->m_originSock.close();
         throw SockLib::Exception("Deserialized float32_t is malformed");
     }
@@ -73,7 +73,7 @@ SockLib::Helper::float64_t SockLib::Deserializer::deserializeFloat64(void)
     std::uint64_t i = this->deserializeUint64();
     SockLib::Helper::float64_t f{};
     std::memcpy(&f, &i, sizeof(f));
-    if (!std::isfinite(f)) {
+    if (!std::isfinite(f)) { // We ignore nan, inf and ect.
         this->m_originSock.close();
         throw SockLib::Exception("Deserialized float64_t is malformed");
     }
@@ -89,6 +89,10 @@ std::vector<std::byte> SockLib::Deserializer::deserializeBytes(void)
 
 bool SockLib::Deserializer::deserializeBool(void)
 {
+    // If someone does sendBool(uint8_t(0b10)).
+    // On gcc for example !state and state both return true.
+    // Doing static_cast<bool> can be optimized to raw copy (Which we don't want).
+
     std::uint8_t i = this->deserializeUint8();
     if (i > 1) {
         this->m_originSock.close();
@@ -115,7 +119,7 @@ std::string SockLib::Deserializer::deserializeStrCopy(void)
     this->deserializeBytesRaw(reinterpret_cast<std::byte*>(s.data()), static_cast<std::size_t>(size));
     for (auto c : s) {
         unsigned char uc = static_cast<unsigned char>(c);
-        if (uc < '\x20' || uc > '\x7E') {
+        if (uc < '\x20' || uc > '\x7E') { // Printable ascii values range.
             this->m_originSock.close();
             throw SockLib::Exception("Deserialized string is malformed");
         }
@@ -133,7 +137,7 @@ std::string_view SockLib::Deserializer::deserializeStrView(void)
     std::string_view s(reinterpret_cast<const char*>(&this->m_bytes[this->m_current]), static_cast<std::string_view::size_type>(size));
     for (auto c : s) {
         unsigned char uc = static_cast<unsigned char>(c);
-        if (uc < '\x20' || uc > '\x7E') {
+        if (uc < '\x20' || uc > '\x7E') { // Printable ascii values range.
             this->m_originSock.close();
             throw SockLib::Exception("Deserialized string is malformed");
         }

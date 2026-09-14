@@ -4,8 +4,6 @@
 #include <memory>
 #include <string>
 #include <vector>
-#include <cstddef>
-#include <cstring>
 
 namespace SockLib
 {
@@ -44,7 +42,7 @@ namespace SockLib
         std::unique_ptr<std::byte[]> m_bytes;
         std::size_t m_current = 0;
         std::size_t m_totalSize;
-        SockLib::Sock &m_originSock;
+        SockLib::Sock &m_originSock; // This allows us to close the socket. If the deserialized data is unsafe to use.
 
         friend class SockLib::Sock;
     };

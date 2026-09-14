@@ -15,9 +15,9 @@ namespace SockLib
             OPEN
         };
 
+        // Move semantics bs for STL support.
         Server(const SockLib::Server &other) = delete;
         SockLib::Server &operator = (const SockLib::Server &other) = delete;
-
         Server(SockLib::Server &&other) noexcept(true);
         SockLib::Server &operator = (SockLib::Server &&other) noexcept(true);
 

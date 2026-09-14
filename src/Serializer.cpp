@@ -83,10 +83,10 @@ void SockLib::Serializer::serializeFloat(float f)
 }
 void SockLib::Serializer::serializeStr(std::string_view v)
 {
-    this->serializeBytes(reinterpret_cast<const std::byte*>(v.size()), static_cast<std::size_t>(v.size()));
+    this->serializeBytes(reinterpret_cast<const std::byte*>(v.data()), static_cast<std::size_t>(v.size()));
 }
 
-void SockLib::Serializer::serializeBytesRaw(const std::byte* bytes, std::size_t size)
+void SockLib::Serializer::serializeBytesRaw(const std::byte *bytes, std::size_t size)
 {
     const std::size_t oldSize = static_cast<std::size_t>(this->m_bytes.size());
     this->m_bytes.resize(oldSize + size, std::byte{});

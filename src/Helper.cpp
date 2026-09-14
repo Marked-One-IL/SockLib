@@ -134,8 +134,9 @@ int SockLib::Helper::send(SOCKET &sock, const char *bytes, int size)
 {
     int sent = ::send(sock, bytes, size, 0);
     if (SOCKET_ERROR == sent) {
+		int err = WSAGetLastError();
         SockLib::Helper::close(sock);
-        throw SockLib::Exception("Failed to send data (WSA error {})", WSAGetLastError());
+        throw SockLib::Exception("Failed to send data (WSA error {})", err);
     }
     return sent;
 }
@@ -150,8 +151,9 @@ int SockLib::Helper::recv(SOCKET &sock, char *bytes, int size)
 {
     int received = ::recv(sock, bytes, size, 0);
     if (SOCKET_ERROR == received) {
+		int err = WSAGetLastError();
         SockLib::Helper::close(sock);
-        throw SockLib::Exception("Failed to receive data (WSA error {})", WSAGetLastError());
+        throw SockLib::Exception("Failed to receive data (WSA error {})", err);
     }
     if (0 == received) {
         if (0 == size) {
@@ -172,12 +174,14 @@ void SockLib::Helper::recvAll(SOCKET &sock, char *bytes, int size)
 void SockLib::Helper::setTimeout(SOCKET &sock, int ms)
 {
     if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&ms), static_cast<int>(sizeof(ms)))) {
+		int err = WSAGetLastError();
         SockLib::Helper::close(sock);
-        throw SockLib::Exception("Failed to set receive timeout (WSA error {})", WSAGetLastError());
+        throw SockLib::Exception("Failed to set receive timeout (WSA error {})", err);
     }
     if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&ms), static_cast<int>(sizeof(ms)))) {
+		int err = WSAGetLastError();
         SockLib::Helper::close(sock);
-        throw SockLib::Exception("Failed to set send timeout (WSA error {})", WSAGetLastError());
+        throw SockLib::Exception("Failed to set send timeout (WSA error {})", err);
     }
 }
 void SockLib::Helper::close(SOCKET &sock)
@@ -292,8 +296,9 @@ ssize_t SockLib::Helper::send(int &sock, const void *bytes, std::size_t size)
         if (EINTR == errno) {
             goto restart;
         }
+		int err = errno;
         SockLib::Helper::close(sock);
-        throw SockLib::Exception("Failed to send data (errno error {})", errno);
+        throw SockLib::Exception("Failed to send data (errno error {})", err);
     }
     return sent;
 }
@@ -313,8 +318,9 @@ ssize_t SockLib::Helper::recv(int &sock, void *bytes, std::size_t size)
         if (EINTR == errno) {
             goto restart;
         }
+		int err = errno;
         SockLib::Helper::close(sock);
-        throw SockLib::Exception("Failed to receive data (errno error {})", errno);
+        throw SockLib::Exception("Failed to receive data (errno error {})", err);
     }
     if (0 == received) {
         if (0 == size) {
@@ -340,12 +346,14 @@ void SockLib::Helper::setTimeout(int &sock, int ms)
     tv.tv_usec = (ms % 1000) * 1000;
 
     if (-1 == setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, static_cast<socklen_t>(sizeof(tv)))) {
+		int err = errno;
         SockLib::Helper::close(sock);
-        throw SockLib::Exception("Failed to set receive timeout (errno error {})", errno);
+        throw SockLib::Exception("Failed to set receive timeout (errno error {})", err);
     }
     if (-1 == setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, static_cast<socklen_t>(sizeof(tv)))) {
+		int err = errno;
         SockLib::Helper::close(sock);
-        throw SockLib::Exception("Failed to set send timeout (errno error {})", errno);
+        throw SockLib::Exception("Failed to set send timeout (errno error {})", err);
     }
 }
 void SockLib::Helper::close(int &sock)

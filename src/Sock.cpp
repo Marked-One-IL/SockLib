@@ -16,8 +16,8 @@ SockLib::Sock::Sock(SockLib::Sock &&other) noexcept(true) :
     other.m_socket = SockLib::Helper::INVALID_SOCK;
 }
 SockLib::Sock &SockLib::Sock::operator = (SockLib::Sock &&other) noexcept(true)
-{
-    assert(this != &other);
+{ assert(this != &other);
+
     this->close();
     this->m_socket = other.m_socket;
     other.m_socket = SockLib::Helper::INVALID_SOCK;
@@ -27,21 +27,19 @@ SockLib::Sock &SockLib::Sock::operator = (SockLib::Sock &&other) noexcept(true)
 void SockLib::Sock::close(void)
 {
     SockLib::Helper::close(this->m_socket);
-    this->m_socket = SockLib::Helper::INVALID_SOCK;
 }
 
 void SockLib::Sock::sendSerialized(const SockLib::Serializer &s)
-{
-    assert(s.getSize() <= SockLib::Sock::SIZE_LIMIT);
+{ assert(s.getSize() <= SockLib::Sock::SIZE_LIMIT);
+
     this->sendUint32(static_cast<std::uint32_t>(s.getSize()));
     this->sendRawAllBytes(s.getBytes(), s.getSize());
 }
-SockLib::Deserializer SockLib::Sock::recvDeserialized(std::uint32_t limit)
-{
-    assert(static_cast<std::size_t>(limit) <= SockLib::Sock::SIZE_LIMIT);
-    std::uint32_t size = this->recvUint32();
+SockLib::Deserializer SockLib::Sock::recvDeserialized(std::size_t limit)
+{ assert(limit <= SockLib::Sock::SIZE_LIMIT);
 
-    if (static_cast<std::size_t>(size) > SockLib::Sock::SIZE_LIMIT) {
+    std::size_t size = static_cast<std::size_t>(this->recvUint32());
+    if (size > SockLib::Sock::SIZE_LIMIT) {
         this->close();
         throw SockLib::Exception("Received deserialized data size exceeds SockLib::Sock::SIZE_LIMIT");
     }
@@ -50,8 +48,8 @@ SockLib::Deserializer SockLib::Sock::recvDeserialized(std::uint32_t limit)
         throw SockLib::Exception("Received deserialized data size exceeds given limit");
     }
 
-    SockLib::Deserializer d(static_cast<std::size_t>(size), *this);
-    this->recvRawAllBytes(d.getBytes(), static_cast<std::size_t>(size));
+    SockLib::Deserializer d(size, *this);
+    this->recvRawAllBytes(d.getBytes(), size);
     return d;
 }
 
@@ -106,8 +104,7 @@ void SockLib::Sock::sendFloat64(SockLib::Helper::float64_t f)
     this->sendUint64(i);
 }
 void SockLib::Sock::sendBytes(const std::byte *bytes, std::size_t size)
-{
-    assert(size <= SockLib::Sock::SIZE_LIMIT);
+{ assert(size <= SockLib::Sock::SIZE_LIMIT);
     this->sendUint32(static_cast<std::size_t>(size));
     this->sendRawAllBytes(bytes, size);
 }
@@ -192,7 +189,7 @@ SockLib::Helper::float32_t SockLib::Sock::recvFloat32(void)
     std::uint32_t i = this->recvUint32();
     SockLib::Helper::float32_t f{};
     std::memcpy(&f, &i, sizeof(f));
-    if (!std::isfinite(f)) {
+    if (!std::isfinite(f)) { // We ignore nan, inf and ect.
         this->close();
         throw SockLib::Exception("Received float32_t is malformed");
     }
@@ -203,17 +200,17 @@ SockLib::Helper::float64_t SockLib::Sock::recvFloat64(void)
     std::uint64_t i = this->recvUint64();
     SockLib::Helper::float64_t f{};
     std::memcpy(&f, &i, sizeof(f));
-    if (!std::isfinite(f)) {
+    if (!std::isfinite(f)) { // We ignore nan, inf and ect.
         this->close();
         throw SockLib::Exception("Received float64_t is malformed");
     }
     return f;
 }
-std::vector<std::byte> SockLib::Sock::recvBytes(std::uint32_t limit)
-{
-    std::uint32_t size = this->recvUint32();
+std::vector<std::byte> SockLib::Sock::recvBytesLimit(std::size_t limit)
+{ assert(limit <= SockLib::Sock::SIZE_LIMIT);
 
-    if (static_cast<std::size_t>(size) > SockLib::Sock::SIZE_LIMIT) {
+    std::size_t size = static_cast<std::size_t>(this->recvUint32());
+    if (size > SockLib::Sock::SIZE_LIMIT) {
         this->close();
         throw SockLib::Exception("Received bytes size exceeds SockLib::Sock::SIZE_LIMIT");
     }
@@ -223,12 +220,16 @@ std::vector<std::byte> SockLib::Sock::recvBytes(std::uint32_t limit)
     }
 
     std::vector<std::byte> v(static_cast<std::vector<std::byte>::size_type>(size), std::byte{});
-    this->recvRawAllBytes(v.data(), static_cast<std::size_t>(v.size()));
+    this->recvRawAllBytes(reinterpret_cast<std::byte*>(v.data()), size);
     return v;
 }
 
 bool SockLib::Sock::recvBool(void)
 {
+    // If someone does sendBool(uint8_t(0b10)).
+    // On gcc for example !state and state both return true.
+    // Doing static_cast<bool> can be optimized to raw copy (Which we don't want).
+
     std::uint8_t i = this->recvUint8();
     if (i > 1) {
         this->close();
@@ -248,10 +249,11 @@ float SockLib::Sock::recvFloat(void)
 {
     return static_cast<float>(this->recvFloat32());
 }
-std::string SockLib::Sock::recvStr(std::uint32_t limit)
-{
-    std::uint32_t size = this->recvUint32();
-    if (static_cast<std::size_t>(size) > SockLib::Sock::SIZE_LIMIT) {
+std::string SockLib::Sock::recvStr(std::size_t limit)
+{ assert(limit <= SockLib::Sock::SIZE_LIMIT);
+
+    std::size_t size = static_cast<std::size_t>(this->recvUint32());
+    if (size > SockLib::Sock::SIZE_LIMIT) {
         this->close();
         throw SockLib::Exception("Received string size exceeds SockLib::Sock::SIZE_LIMIT");
     }
@@ -261,11 +263,11 @@ std::string SockLib::Sock::recvStr(std::uint32_t limit)
     }
 
     std::string s(static_cast<std::string::size_type>(size), '\0');
-    this->recvRawAllBytes(reinterpret_cast<std::byte*>(s.data()), static_cast<std::size_t>(size));
+    this->recvRawAllBytes(reinterpret_cast<std::byte*>(s.data()), size);
 
     for (auto c : s) {
         unsigned char uc = static_cast<unsigned char>(c);
-        if (uc < '\x20' || uc > '\x7E') {
+        if (uc < '\x20' || uc > '\x7E') { // Printable ascii values range.
             this->close();
             throw SockLib::Exception("Received string is malformed");
         }
@@ -282,10 +284,27 @@ void SockLib::Sock::recvRawAllBytes(std::byte *bytes, std::size_t size)
 {
     SockLib::Helper::recvAll(this->m_socket, reinterpret_cast<SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
 }
+std::vector<std::byte> SockLib::Sock::recvBytes(std::uint32_t limit)
+{
+    std::uint32_t size = this->recvUint32();
+
+    if (static_cast<std::size_t>(size) > SockLib::Sock::SIZE_LIMIT) {
+        this->close();
+        throw SockLib::Exception("Received bytes size exceeds SockLib::Sock::SIZE_LIMIT");
+    }
+    if (size > limit) {
+        this->close();
+        throw SockLib::Exception("Received bytes size exceeds given limit");
+    }
+
+    std::vector<std::byte> v(static_cast<std::vector<std::byte>::size_type>(size), std::byte{});
+    this->recvRawAllBytes(v.data(), static_cast<std::size_t>(v.size()));
+    return v;
+}
 
 SockLib::Sock SockLib::Sock::connect(const char *address, std::uint16_t port, std::size_t timeoutMS)
-{
-    assert(timeoutMS <= SockLib::Sock::TIMEOUT_LIMIT);
+{ assert(timeoutMS <= SockLib::Sock::TIMEOUT_LIMIT);
+
     std::string portStr = std::to_string(static_cast<int>(port));
     SockLib::Sock sock = SockLib::Sock(SockLib::Helper::connect(address, portStr.c_str()));
     SockLib::Helper::setTimeout(sock.m_socket, static_cast<SockLib::Helper::TimeoutType>(timeoutMS));

@@ -8,6 +8,7 @@ SockLib::Server::Server(SockLib::Server &&other) noexcept(true) :
 SockLib::Server &SockLib::Server::operator = (SockLib::Server &&other) noexcept(true)
 {
     this->m_sock = std::move(other.m_sock);
+	return *this;
 }
 
 SockLib::Server::Server(std::uint16_t port, SockLib::Server::Visibility visibility) :
