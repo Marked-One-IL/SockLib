@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <vector>
+#include <span>
 
 namespace SockLib
 {
@@ -14,17 +15,18 @@ namespace SockLib
     public:
         Deserializer(void) = delete;
 
-        std::int8_t                deserializeInt8    (void);
-        std::uint8_t               deserializeUint8   (void);
-        std::int16_t               deserializeInt16   (void);
-        std::uint16_t              deserializeUint16  (void);
-        std::int32_t               deserializeInt32   (void);
-        std::uint32_t              deserializeUint32  (void);
-        std::int64_t               deserializeInt64   (void);
-        std::uint64_t              deserializeUint64  (void);
-        SockLib::Helper::float32_t deserializeFloat32 (void);
-        SockLib::Helper::float64_t deserializeFloat64 (void);
-        std::vector<std::byte>     deserializeBytes   (void);
+        std::int8_t                deserializeInt8      (void);
+        std::uint8_t               deserializeUint8     (void);
+        std::int16_t               deserializeInt16     (void);
+        std::uint16_t              deserializeUint16    (void);
+        std::int32_t               deserializeInt32     (void);
+        std::uint32_t              deserializeUint32    (void);
+        std::int64_t               deserializeInt64     (void);
+        std::uint64_t              deserializeUint64    (void);
+        SockLib::Helper::float32_t deserializeFloat32   (void);
+        SockLib::Helper::float64_t deserializeFloat64   (void);
+        std::vector<std::byte>     deserializeBytesCopy (void);
+        std::span<std::byte>       deserializeBytesSpan (void);
 
         bool             deserializeBool    (void);
         char             deserializeChar    (void);

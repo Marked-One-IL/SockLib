@@ -194,20 +194,27 @@ int SockLib::Helper::serverInit(std::uint16_t port, bool localhost)
     }
 #endif
 
+    int enableReuseaddr = 1;
+    if (-1 == setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &enableReuseaddr, sizeof(enableReuseaddr))) {
+        int err2 = errno;
+        ::close(sock);
+        throw SockLib::Exception("Failed to set SO_REUSEADDR (errno error {})", err2);
+    }
+
     sockaddr_in serverAddress{};
     serverAddress.sin_family = AF_INET;
     serverAddress.sin_addr.s_addr = htonl(localhost ? INADDR_LOOPBACK : INADDR_ANY);
     serverAddress.sin_port = htons(port);
 
     if (-1 == bind(sock, (sockaddr*)&serverAddress, static_cast<socklen_t>(sizeof(serverAddress)))) {
-        int err = errno;
+        int err2 = errno;
         ::close(sock);
-        throw SockLib::Exception("Failed to bind server on port '{}' (errno error {})", port, err);
+        throw SockLib::Exception("Failed to bind server on port '{}' (errno error {})", port, err2);
     }
     if (-1 == listen(sock, SOMAXCONN)) {
-        int err = errno;
+        int err2 = errno;
         ::close(sock);
-        throw SockLib::Exception("Failed to make server listen on port '{}' (errno error {})", port, err);
+        throw SockLib::Exception("Failed to make server listen on port '{}' (errno error {})", port, err2);
     }
 
     return sock;

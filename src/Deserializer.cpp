@@ -80,12 +80,19 @@ SockLib::Helper::float64_t SockLib::Deserializer::deserializeFloat64(void)
     }
     return f;
 }
-std::vector<std::byte> SockLib::Deserializer::deserializeBytes(void)
+std::vector<std::byte> SockLib::Deserializer::deserializeBytesCopy(void)
 {
     std::uint32_t size = this->deserializeUint32();
     std::vector<std::byte> v(static_cast<std::vector<std::byte>::size_type>(size), std::byte{});
     this->deserializeBytesRaw(v.data(), static_cast<std::size_t>(v.size()));
     return v;
+}
+std::span<std::byte> SockLib::Deserializer::deserializeBytesSpan (void)
+{
+    std::uint32_t size = this->deserializeUint32();
+    std::span<std::byte> s(reinterpret_cast<std::byte*>(&this->m_bytes[this->m_current]), static_cast<std::span<std::byte>::size_type>(size));
+    this->m_current += static_cast<std::size_t>(size);
+    return s;
 }
 
 bool SockLib::Deserializer::deserializeBool(void)
