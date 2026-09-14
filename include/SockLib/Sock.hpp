@@ -13,6 +13,7 @@ namespace SockLib
     {
     public:
         inline static constexpr std::size_t SIZE_LIMIT = 2147483647;
+        inline static constexpr std::size_t TIMEOUT_LIMIT = 60000;
         inline static constexpr const char *LOCALHOST = "127.0.0.1";
 
         ~Sock(void);
@@ -67,8 +68,8 @@ namespace SockLib
         static SockLib::Sock connect(const char *address, std::uint16_t port, std::size_t timeoutMS);
 
     private:
-        void sendRawAllBytes(const std::byte *bytes, std::size_t size);
-        void recvRawAllBytes(std::byte       *bytes, std::size_t size);
+        void sendRawAllBytes    (const std::byte *bytes, std::size_t size);
+        void recvRawAllBytes    (std::byte       *bytes, std::size_t size);
 
         Sock(SockLib::Helper::Sock new_socket);
         

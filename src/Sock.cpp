@@ -4,8 +4,6 @@
 #include <cassert>
 #include <cmath>
 
-// These move semantics are a must if I want classes like std::vector<T> not to close sockets when reallocating.
-
 SockLib::Sock::~Sock(void)
 {
     if (SockLib::Helper::INVALID_SOCK != this->m_socket) {
@@ -35,11 +33,12 @@ void SockLib::Sock::close(void)
 void SockLib::Sock::sendSerialized(const SockLib::Serializer &s)
 {
     assert(s.getSize() <= SockLib::Sock::SIZE_LIMIT);
-    this->sendUint32(static_cast<std::uint32_t>(s.m_bytes.size()));
+    this->sendUint32(static_cast<std::uint32_t>(s.getSize()));
     this->sendRawAllBytes(s.getBytes(), s.getSize());
 }
 SockLib::Deserializer SockLib::Sock::recvDeserialized(std::uint32_t limit)
 {
+    assert(static_cast<std::size_t>(limit) <= SockLib::Sock::SIZE_LIMIT);
     std::uint32_t size = this->recvUint32();
 
     if (static_cast<std::size_t>(size) > SockLib::Sock::SIZE_LIMIT) {
@@ -119,7 +118,7 @@ void SockLib::Sock::sendBool(bool b)
 }
 void SockLib::Sock::sendChar(char c)
 {
-    this->sendInt8(static_cast<std::int8_t>(c));
+    this->sendUint8(static_cast<std::uint8_t>(c));
 }
 void SockLib::Sock::sendInt(int i)
 {
@@ -131,7 +130,7 @@ void SockLib::Sock::sendFloat(float f)
 }
 void SockLib::Sock::sendStr(std::string_view s)
 {
-    this->sendBytes(reinterpret_cast<const std::byte*>(s.data()), static_cast<std::size_t>(s.size());
+    this->sendBytes(reinterpret_cast<const std::byte*>(s.data()), static_cast<std::size_t>(s.size()));
 }
 
 std::int8_t SockLib::Sock::recvInt8(void)
@@ -239,7 +238,7 @@ bool SockLib::Sock::recvBool(void)
 }
 char SockLib::Sock::recvChar(void)
 {
-    return static_cast<char>(this->recvInt8());
+    return static_cast<char>(this->recvUint8());
 }
 int SockLib::Sock::recvInt(void)
 {
@@ -286,6 +285,7 @@ void SockLib::Sock::recvRawAllBytes(std::byte *bytes, std::size_t size)
 
 SockLib::Sock SockLib::Sock::connect(const char *address, std::uint16_t port, std::size_t timeoutMS)
 {
+    assert(timeoutMS <= SockLib::Sock::TIMEOUT_LIMIT);
     std::string portStr = std::to_string(static_cast<int>(port));
     SockLib::Sock sock = SockLib::Sock(SockLib::Helper::connect(address, portStr.c_str()));
     SockLib::Helper::setTimeout(sock.m_socket, static_cast<SockLib::Helper::TimeoutType>(timeoutMS));

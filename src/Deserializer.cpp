@@ -98,7 +98,7 @@ bool SockLib::Deserializer::deserializeBool(void)
 }
 char SockLib::Deserializer::deserializeChar(void)
 {
-    return static_cast<char>(this->deserializeInt8());
+    return static_cast<char>(this->deserializeUint8());
 }
 int SockLib::Deserializer::deserializeInt(void)
 {

@@ -284,7 +284,7 @@ int SockLib::Helper::accept(int sock)
 #endif
     return newSock;
 }
-ssize_t SockLib::Helper::send(int sock, const void *bytes, std::size_t size)
+ssize_t SockLib::Helper::send(int &sock, const void *bytes, std::size_t size)
 {
     restart:
     ssize_t sent = ::send(sock, bytes, size, SockLib::Helper::sendFlag);
@@ -292,11 +292,12 @@ ssize_t SockLib::Helper::send(int sock, const void *bytes, std::size_t size)
         if (EINTR == errno) {
             goto restart;
         }
+        SockLib::Helper::close(sock);
         throw SockLib::Exception("Failed to send data (errno error {})", errno);
     }
     return sent;
 }
-void SockLib::Helper::sendAll(int sock, const void *bytes, std::size_t size)
+void SockLib::Helper::sendAll(int &sock, const void *bytes, std::size_t size)
 {
     std::size_t sent = 0;
     while (sent < size) {
@@ -304,7 +305,7 @@ void SockLib::Helper::sendAll(int sock, const void *bytes, std::size_t size)
         sent += static_cast<std::size_t>(SockLib::Helper::send(sock, currentBytes, size - sent));
     }
 }
-ssize_t SockLib::Helper::recv(int sock, void *bytes, std::size_t size)
+ssize_t SockLib::Helper::recv(int &sock, void *bytes, std::size_t size)
 {    
     restart:
     ssize_t received = ::recv(sock, bytes, size, 0);
@@ -312,17 +313,19 @@ ssize_t SockLib::Helper::recv(int sock, void *bytes, std::size_t size)
         if (EINTR == errno) {
             goto restart;
         }
+        SockLib::Helper::close(sock);
         throw SockLib::Exception("Failed to receive data (errno error {})", errno);
     }
     if (0 == received) {
         if (0 == size) {
             return 0;
         }
+        SockLib::Helper::close(sock);
         throw SockLib::Exception("Failed to receive data because the session ended");
     }
     return received;
 }
-void SockLib::Helper::recvAll(int sock, void *bytes, std::size_t size)
+void SockLib::Helper::recvAll(int &sock, void *bytes, std::size_t size)
 {
     std::size_t received = 0;
     while (received < size) {
@@ -345,7 +348,7 @@ void SockLib::Helper::setTimeout(int &sock, int ms)
         throw SockLib::Exception("Failed to set send timeout (errno error {})", errno);
     }
 }
-void SockLib::Helper::close(int sock)
+void SockLib::Helper::close(int &sock)
 {
     if (-1 != sock) {
         ::close(sock);

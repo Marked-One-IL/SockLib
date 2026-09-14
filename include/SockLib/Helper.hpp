@@ -67,6 +67,7 @@ namespace SockLib
 // Using ::send() with a broken socket can terminate the program. So we pass a 'MSG_NOSIGNAL' flag and it returns -1 instead.
         inline static constexpr int sendFlag = MSG_NOSIGNAL;
 #else // __APPLE__
+// Same as above but we have to implement it differently for MAC.
         inline static constexpr int sendFlag = 0;
         static int disableSigpipe(int sock);
 #endif

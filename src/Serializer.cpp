@@ -71,7 +71,7 @@ void SockLib::Serializer::serializeBool(bool b)
 }
 void SockLib::Serializer::serializeChar(char c)
 {
-    this->serializeInt8(static_cast<std::int8_t>(c));
+    this->serializeUint8(static_cast<std::uint8_t>(c));
 }
 void SockLib::Serializer::serializeInt(int i)
 {
