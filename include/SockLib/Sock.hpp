@@ -51,17 +51,17 @@ namespace SockLib
         void sendFloat (float            f);
         void sendStr   (std::string_view s);
 
-        std::int8_t                recvInt8       (void);
-        std::uint8_t               recvUint8      (void);
-        std::int16_t               recvInt16      (void);
-        std::uint16_t              recvUint16     (void);
-        std::int32_t               recvInt32      (void);
-        std::uint32_t              recvUint32     (void);
-        std::int64_t               recvInt64      (void);
-        std::uint64_t              recvUint64     (void);
-        SockLib::Helper::float32_t recvFloat32    (void);
-        SockLib::Helper::float64_t recvFloat64    (void);
-        std::vector<std::byte>     recvBytesLimit (std::size_t limit);
+        std::int8_t                recvInt8    (void);
+        std::uint8_t               recvUint8   (void);
+        std::int16_t               recvInt16   (void);
+        std::uint16_t              recvUint16  (void);
+        std::int32_t               recvInt32   (void);
+        std::uint32_t              recvUint32  (void);
+        std::int64_t               recvInt64   (void);
+        std::uint64_t              recvUint64  (void);
+        SockLib::Helper::float32_t recvFloat32 (void);
+        SockLib::Helper::float64_t recvFloat64 (void);
+        std::vector<std::byte>     recvBytes   (std::size_t limit);
 
         bool        recvBool  (void);
         char        recvChar  (void);
@@ -74,7 +74,6 @@ namespace SockLib
     private:
         void                   sendRawAllBytes (const std::byte *bytes, std::size_t size);
         void                   recvRawAllBytes (std::byte       *bytes, std::size_t size);
-        std::vector<std::byte> recvBytes       (std::size_t limit);
 
         Sock(SockLib::Helper::Sock new_socket);
         

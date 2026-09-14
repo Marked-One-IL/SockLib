@@ -206,7 +206,7 @@ SockLib::Helper::float64_t SockLib::Sock::recvFloat64(void)
     }
     return f;
 }
-std::vector<std::byte> SockLib::Sock::recvBytesLimit(std::size_t limit)
+std::vector<std::byte> SockLib::Sock::recvBytes(std::size_t limit)
 { assert(limit <= SockLib::Sock::SIZE_LIMIT);
 
     std::size_t size = static_cast<std::size_t>(this->recvUint32());
@@ -283,24 +283,6 @@ void SockLib::Sock::sendRawAllBytes(const std::byte *bytes, std::size_t size)
 void SockLib::Sock::recvRawAllBytes(std::byte *bytes, std::size_t size)
 {
     SockLib::Helper::recvAll(this->m_socket, reinterpret_cast<SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
-}
-std::vector<std::byte> SockLib::Sock::recvBytes(std::size_t limit)
-{ assert(limit <= SockLib::Sock::SIZE_LIMIT);
-
-    std::size_t size = static_cast<std::size_t>(this->recvUint32());
-
-    if (size > SockLib::Sock::SIZE_LIMIT) {
-        this->close();
-        throw SockLib::Exception("Received bytes size exceeds SockLib::Sock::SIZE_LIMIT");
-    }
-    if (size > limit) {
-        this->close();
-        throw SockLib::Exception("Received bytes size exceeds given limit");
-    }
-
-    std::vector<std::byte> v(static_cast<std::vector<std::byte>::size_type>(size), std::byte{});
-    this->recvRawAllBytes(v.data(), v.size());
-    return v;
 }
 
 SockLib::Sock SockLib::Sock::connect(const char *address, std::uint16_t port, std::size_t timeoutMS)
