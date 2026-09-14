@@ -29,20 +29,20 @@ int main()
     try
     {
 #ifdef SERVER
-        SockLib::Server server (8080, true);
-        SockLib::Sock sock = server.accept();
+        SockLib::Server server (8080, SockLib::Server::Visibility::LOCALHOST);
+        SockLib::Sock sock = server.accept(1000);
         SockLib::Serializer s;
         s.serializeBool(true);
         s.serializeFloat64(25.25);
         s.serializeStr("Hello, World!");
         sock.sendSerialized(s);
-        std::cout << sock.recvInt16() << '\n';
+        std::cout << std::format("Server: {}\n", sock.recvInt16());
 #else // CLIENT
-        SockLib::Sock sock = SockLib::Sock::connect(SockLib::Sock::LOCALHOST, 8080);
-        SockLib::Deserializer d = sock.recvDeserialized();
-        std::cout << d.deserializeBool() << '\n';
-        std::cout << d.deserializeFloat64() << '\n';
-        std::cout << d.deserializeStrView() << '\n';
+        SockLib::Sock sock = SockLib::Sock::connect(SockLib::Sock::LOCALHOST, 8080, 1000);
+        SockLib::Deserializer d = sock.recvDeserialized(4096);
+        std::cout << std::format("Client: {}\n", d.deserializeBool());
+        std::cout << std::format("Client: {}\n", d.deserializeFloat64());
+        std::cout << std::format("Client: {}\n", d.deserializeStrView());
         sock.sendInt16(101);
 #endif
     }
