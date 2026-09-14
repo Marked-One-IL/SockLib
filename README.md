@@ -1,6 +1,10 @@
 # About
-A simple but explicit TCP socket library for C++.<br>
+A simple, safe and explicit TCP socket library for C++.<br>
 - The library support Windows, Linux and Mac.<br>
+
+# Notice
+This library is meant to be used on both ends.
+If it's not the case the behavior is undefined.
 
 # CMake
 Before creating target.<br>

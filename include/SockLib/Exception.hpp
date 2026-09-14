@@ -7,9 +7,8 @@
 
 namespace SockLib
 {
-    // No need for million gazillion exceptions.
-    // I hate when libraries do that.
-    // A single exception and a string is enough.
+    // No need for a lot of exceptions types.
+    // This is extra work for something is not useful at all and just overwhelms the user.
 
     class Exception : public std::runtime_error
     {

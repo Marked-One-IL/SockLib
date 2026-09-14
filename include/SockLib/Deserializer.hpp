@@ -35,7 +35,7 @@ namespace SockLib
 
     private:
         void deserializeBytesRaw (std::byte* bytes, std::size_t size);
-
+        
         Deserializer(std::size_t size, SockLib::Sock &originSock);
         std::byte *getBytes(void);
 

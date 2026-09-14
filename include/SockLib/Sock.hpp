@@ -22,7 +22,7 @@ namespace SockLib
 
         ~Sock(void);
 
-        // Move semantics bs for STL support.
+        // Move semantics for STL support.
         Sock(const SockLib::Sock &other) = delete;
         SockLib::Sock& operator = (const SockLib::Sock &other) = delete;
         Sock(SockLib::Sock &&other) noexcept(true);
@@ -72,8 +72,8 @@ namespace SockLib
         static SockLib::Sock connect(const char *address, std::uint16_t port, std::size_t timeoutMS);
 
     private:
-        void                   sendRawAllBytes (const std::byte *bytes, std::size_t size);
-        void                   recvRawAllBytes (std::byte       *bytes, std::size_t size);
+        void sendRawAllBytes (const std::byte *bytes, std::size_t size);
+        void recvRawAllBytes (std::byte       *bytes, std::size_t size);
 
         Sock(SockLib::Helper::Sock new_socket);
         

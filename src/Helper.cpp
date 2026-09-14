@@ -21,46 +21,33 @@ SockLib::Helper::StaticSocketInitAndDestroyer SockLib::Helper::g_staticSocketIni
 std::uint16_t SockLib::Helper::normalizeUint16(std::uint16_t i)
 {
     if constexpr (std::endian::native == std::endian::big) {
-        return SockLib::Helper::uint16BitsSwap(i);
+        return (i >> 8) | (i << 8);
     }
     return i;
 }
 std::uint32_t SockLib::Helper::normalizeUint32(std::uint32_t i)
 {
     if constexpr (std::endian::native == std::endian::big) {
-        return SockLib::Helper::uint32BitsSwap(i);
+        return ((i & 0x000000FFu) << 24) | 
+               ((i & 0x0000FF00u) << 8)  |
+               ((i & 0x00FF0000u) >> 8)  |
+               ((i & 0xFF000000u) >> 24);
     }
     return i;
 }
 std::uint64_t SockLib::Helper::normalizeUint64(std::uint64_t i)
 {
     if constexpr (std::endian::native == std::endian::big) {
-        return SockLib::Helper::uint64BitsSwap(i);
+        return ((i & 0x00000000000000FFULL) << 56) |
+               ((i & 0x000000000000FF00ULL) << 40) |
+               ((i & 0x0000000000FF0000ULL) << 24) |
+               ((i & 0x00000000FF000000ULL) << 8)  |
+               ((i & 0x000000FF00000000ULL) >> 8)  |
+               ((i & 0x0000FF0000000000ULL) >> 24) |
+               ((i & 0x00FF000000000000ULL) >> 40) |
+               ((i & 0xFF00000000000000ULL) >> 56);
     }
     return i;
-}
-
-std::uint16_t SockLib::Helper::uint16BitsSwap(std::uint16_t i)
-{
-    return (i >> 8) | (i << 8);
-}
-std::uint32_t SockLib::Helper::uint32BitsSwap(std::uint32_t i)
-{
-    return ((i & 0x000000FFu) << 24) | 
-           ((i & 0x0000FF00u) << 8)  |
-           ((i & 0x00FF0000u) >> 8)  |
-           ((i & 0xFF000000u) >> 24);
-}
-std::uint64_t SockLib::Helper::uint64BitsSwap(std::uint64_t i)
-{
-    return ((i & 0x00000000000000FFULL) << 56) |
-           ((i & 0x000000000000FF00ULL) << 40) |
-           ((i & 0x0000000000FF0000ULL) << 24) |
-           ((i & 0x00000000FF000000ULL) << 8)  |
-           ((i & 0x000000FF00000000ULL) >> 8)  |
-           ((i & 0x0000FF0000000000ULL) >> 24) |
-           ((i & 0x00FF000000000000ULL) >> 40) |
-           ((i & 0xFF00000000000000ULL) >> 56);
 }
 
 #ifdef _WIN32

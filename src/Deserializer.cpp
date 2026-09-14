@@ -63,7 +63,7 @@ SockLib::Helper::float32_t SockLib::Deserializer::deserializeFloat32(void)
     std::uint32_t i = this->deserializeUint32();
     SockLib::Helper::float32_t f{};
     std::memcpy(&f, &i, sizeof(f));
-    if (!std::isfinite(f)) { // We ignore nan, inf and ect.
+    if (!std::isfinite(f)) { // For nan, inf and ect.
         this->m_originSock.close();
         throw SockLib::Exception("Deserialized float32_t is malformed");
     }
@@ -74,7 +74,7 @@ SockLib::Helper::float64_t SockLib::Deserializer::deserializeFloat64(void)
     std::uint64_t i = this->deserializeUint64();
     SockLib::Helper::float64_t f{};
     std::memcpy(&f, &i, sizeof(f));
-    if (!std::isfinite(f)) { // We ignore nan, inf and ect.
+    if (!std::isfinite(f)) { // For nan, inf and ect.
         this->m_originSock.close();
         throw SockLib::Exception("Deserialized float64_t is malformed");
     }

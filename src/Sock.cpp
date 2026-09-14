@@ -189,7 +189,7 @@ SockLib::Helper::float32_t SockLib::Sock::recvFloat32(void)
     std::uint32_t i = this->recvUint32();
     SockLib::Helper::float32_t f{};
     std::memcpy(&f, &i, sizeof(f));
-    if (!std::isfinite(f)) { // We ignore nan, inf and ect.
+    if (!std::isfinite(f)) { // For nan, inf and ect.
         this->close();
         throw SockLib::Exception("Received float32_t is malformed");
     }
@@ -200,7 +200,7 @@ SockLib::Helper::float64_t SockLib::Sock::recvFloat64(void)
     std::uint64_t i = this->recvUint64();
     SockLib::Helper::float64_t f{};
     std::memcpy(&f, &i, sizeof(f));
-    if (!std::isfinite(f)) { // We ignore nan, inf and ect.
+    if (!std::isfinite(f)) { // For nan, inf and ect.
         this->close();
         throw SockLib::Exception("Received float64_t is malformed");
     }

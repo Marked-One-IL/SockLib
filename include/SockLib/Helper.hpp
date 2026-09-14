@@ -20,10 +20,14 @@ static_assert(sizeof(double) == 8);
 static_assert(std::numeric_limits<float>::is_iec559);
 static_assert(std::numeric_limits<double>::is_iec559);
 
+// We take sock by & because we want to make it unusable after it throws an error.
+
 namespace SockLib
 {
     class Sock;
     class Server;
+    class Serializer;
+    class Deserializer;
 
     class Helper
     {
@@ -31,15 +35,11 @@ namespace SockLib
         using float32_t = float;
         using float64_t = double;
 
+    private:
         static std::uint16_t normalizeUint16 (std::uint16_t i);
         static std::uint32_t normalizeUint32 (std::uint32_t i);
         static std::uint64_t normalizeUint64 (std::uint64_t i);
 
-        static std::uint16_t uint16BitsSwap  (std::uint16_t i);
-        static std::uint32_t uint32BitsSwap  (std::uint32_t i);
-        static std::uint64_t uint64BitsSwap  (std::uint64_t i);
-
-    private:
         using TimeoutType = int;
 #ifdef _WIN32
         using Size = int;
@@ -59,7 +59,7 @@ namespace SockLib
         static void   close      (SOCKET &sock);
 #elif defined(__linux__) || defined(__APPLE__)
         using Size = std::size_t;
-        using Byte = void;
+        using Byte = void; // Weird I know. This elsewhere just used to cast from std::byte* to void*
         using PortType = std::uint16_t;
         using Sock = int;
 
@@ -85,6 +85,7 @@ namespace SockLib
 #else
         // Put your unsupported platform specific code here.
 #endif
+        // This is currently only relavent for Windows.
         struct StaticSocketInitAndDestroyer
         {
             StaticSocketInitAndDestroyer(void);
@@ -95,6 +96,8 @@ namespace SockLib
 
         friend class SockLib::Sock;
         friend class SockLib::Server;
+        friend class SockLib::Serializer;
+        friend class SockLib::Deserializer;
     };
 }
 #endif // SOCK_LIB_HELPER
