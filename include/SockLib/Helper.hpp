@@ -4,6 +4,13 @@
 #include <cstddef>
 #include <limits>
 
+/*
+If my old self could have seen me he would have been ashamed
+Every time I manage to surprise myself
+How fucking disgusting I am
+A corpse feasting upon carcass
+*/
+
 #ifdef _WIN32
 #include <winsock2.h>
 #elif defined(__linux__) || defined(__APPLE__)
