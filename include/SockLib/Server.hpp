@@ -18,8 +18,8 @@ namespace SockLib
         // Move semantics for STL support.
         Server(const SockLib::Server &other) = delete;
         SockLib::Server &operator = (const SockLib::Server &other) = delete;
-        Server(SockLib::Server &&other) noexcept(true);
-        SockLib::Server &operator = (SockLib::Server &&other) noexcept(true);
+        Server(SockLib::Server &&other) noexcept;
+        SockLib::Server &operator = (SockLib::Server &&other) noexcept;
 
         Server(std::uint16_t port, SockLib::Server::Visibility visibility);
         SockLib::Sock accept(std::size_t timeoutMS) const;

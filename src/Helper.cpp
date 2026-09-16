@@ -374,7 +374,7 @@ int SockLib::Helper::disableSigpipe(int sock)
 SockLib::Helper::StaticSocketInitAndDestroyer::StaticSocketInitAndDestroyer(void)
 {
 #ifdef _WIN32
-    WSADATA wsa;
+    WSADATA wsa{};
     int res = WSAStartup(MAKEWORD(2, 2), &wsa);
     if (0 != res) {
         throw SockLib::Exception("Failed to initialize WSA (WSAStartup() error {})", res);

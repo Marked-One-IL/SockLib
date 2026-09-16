@@ -4,13 +4,6 @@
 #include <cstddef>
 #include <limits>
 
-/*
-If my old self could have seen me he would have been ashamed
-Every time I manage to surprise myself
-How fucking disgusting I am
-A corpse feasting upon carcass
-*/
-
 #ifdef _WIN32
 #include <winsock2.h>
 #elif defined(__linux__) || defined(__APPLE__)
@@ -19,7 +12,6 @@ A corpse feasting upon carcass
 // Put your unsupported platform specific code here.
 #endif
 
-// Me being overwhelmingly paranoid.
 // Almost 100% of all machines support IEEE-754.
 // But the C standard does not guarantee it.
 static_assert(sizeof(float)  == 4);
@@ -27,26 +19,24 @@ static_assert(sizeof(double) == 8);
 static_assert(std::numeric_limits<float>::is_iec559);
 static_assert(std::numeric_limits<double>::is_iec559);
 
-// We take sock by & because we want to make it unusable after it throws an error.
-
 namespace SockLib
 {
     class Sock;
     class Server;
-    class Serializer;
-    class Deserializer;
 
     class Helper
     {
     public:
+        Helper(void) = delete;
+
         using float32_t = float;
         using float64_t = double;
 
-    private:
-        static std::uint16_t normalizeUint16 (std::uint16_t i);
-        static std::uint32_t normalizeUint32 (std::uint32_t i);
-        static std::uint64_t normalizeUint64 (std::uint64_t i);
+        static std::uint16_t normalizeUint16(std::uint16_t i);
+        static std::uint32_t normalizeUint32(std::uint32_t i);
+        static std::uint64_t normalizeUint64(std::uint64_t i);
 
+    private:
         using TimeoutType = int;
 #ifdef _WIN32
         using Size = int;
@@ -103,8 +93,6 @@ namespace SockLib
 
         friend class SockLib::Sock;
         friend class SockLib::Server;
-        friend class SockLib::Serializer;
-        friend class SockLib::Deserializer;
     };
 }
 #endif // SOCK_LIB_HELPER

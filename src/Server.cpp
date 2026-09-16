@@ -1,11 +1,11 @@
 #include <SockLib/Server.hpp>
 #include <cassert>
 
-SockLib::Server::Server(SockLib::Server &&other) noexcept(true) :
+SockLib::Server::Server(SockLib::Server &&other) noexcept :
     m_sock(std::move(other.m_sock))
 {
 }
-SockLib::Server &SockLib::Server::operator = (SockLib::Server &&other) noexcept(true)
+SockLib::Server &SockLib::Server::operator = (SockLib::Server &&other) noexcept
 {
     this->m_sock = std::move(other.m_sock);
 	return *this;
@@ -17,8 +17,8 @@ SockLib::Server::Server(std::uint16_t port, SockLib::Server::Visibility visibili
 }
 
 SockLib::Sock SockLib::Server::accept(std::size_t timeoutMS) const
-{
-    assert(timeoutMS <= SockLib::Sock::TIMEOUT_LIMIT);
+{ assert(SockLib::Sock::TIMEOUT_LIMIT >= timeoutMS);
+
     SockLib::Sock sock = SockLib::Helper::accept(this->m_sock.m_socket);
     SockLib::Helper::setTimeout(sock.m_socket, static_cast<SockLib::Helper::TimeoutType>(timeoutMS));
     return sock;
