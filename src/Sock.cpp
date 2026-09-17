@@ -4,12 +4,14 @@
 #include <cassert>
 #include <cmath>
 
-SockLib::Sock SockLib::Sock::connect(const char* address, std::uint16_t port, std::size_t timeoutMS)
-{ assert(SockLib::Sock::TIMEOUT_LIMIT >= timeoutMS);
+SockLib::Sock SockLib::Sock::connect(const char *address, std::uint16_t port, std::chrono::milliseconds timeout)
+{ assert(SockLib::Sock::MAX_TIMEOUT >= timeout);
 
     std::string portStr = std::to_string(static_cast<int>(port));
     SockLib::Sock sock = SockLib::Sock(SockLib::Helper::connect(address, portStr.c_str()));
-    SockLib::Helper::setTimeout(sock.m_socket, static_cast<SockLib::Helper::TimeoutType>(timeoutMS));
+#ifdef NDEBUG // While debugging putting a timeout can become extremely annoying.
+    SockLib::Helper::setTimeout(sock.m_socket, static_cast<SockLib::Helper::TimeoutType>(timeout.count()));
+#endif
     return sock;
 }
 void SockLib::Sock::close(void)
@@ -18,7 +20,7 @@ void SockLib::Sock::close(void)
 }
 SockLib::Sock::~Sock(void)
 {
-    if (this->m_socket != SockLib::Helper::INVALID_SOCK) {
+    if (SockLib::Helper::INVALID_SOCK != this->m_socket) {
         this->close();
     }
 }
@@ -88,7 +90,7 @@ void SockLib::Sock::sendFloat64(SockLib::Helper::float64_t f)
     this->sendUint64(i);
 }
 void SockLib::Sock::sendBytes(const std::byte *bytes, std::size_t size)
-{ assert(SockLib::Sock::SIZE_LIMIT >= size);
+{ assert(nullptr != bytes); assert(SockLib::Sock::MAX_SIZE >= size);
 
     this->sendUint32(static_cast<std::size_t>(size));
     this->sendRawAllBytes(bytes, size);
@@ -191,17 +193,17 @@ SockLib::Helper::float64_t SockLib::Sock::recvFloat64(void)
     }
     return f;
 }
-std::vector<std::byte> SockLib::Sock::recvBytes(std::size_t limit)
-{ assert(SockLib::Sock::SIZE_LIMIT >= limit);
+std::vector<std::byte> SockLib::Sock::recvBytes(std::size_t maxBytes)
+{ assert(SockLib::Sock::MAX_SIZE >= maxBytes);
 
     std::size_t size = static_cast<std::size_t>(this->recvUint32());
-    if (SockLib::Sock::SIZE_LIMIT < size) {
+    if (SockLib::Sock::MAX_SIZE < size) {
         this->close();
-        throw SockLib::Exception("Received bytes size exceeds SockLib::Sock::SIZE_LIMIT");
+        throw SockLib::Exception("Received bytes size='{}' exceeds SockLib::Sock::MAX_SIZE", size);
     }
-    if (limit < size) {
+    if (maxBytes < size) {
         this->close();
-        throw SockLib::Exception("Received bytes size exceeds given limit");
+        throw SockLib::Exception("Received bytes size='{}' exceeds given max-bytes='{}'", size, maxBytes);
     }
 
     std::vector<std::byte> v(static_cast<std::vector<std::byte>::size_type>(size), std::byte{});
@@ -230,17 +232,17 @@ float SockLib::Sock::recvFloat(void)
 {
     return static_cast<float>(this->recvFloat32());
 }
-std::string SockLib::Sock::recvStr(std::size_t limit)
-{ assert(SockLib::Sock::SIZE_LIMIT >= limit);
+std::string SockLib::Sock::recvStr(std::size_t maxBytes)
+{ assert(SockLib::Sock::MAX_SIZE >= maxBytes);
 
     std::size_t size = static_cast<std::size_t>(this->recvUint32());
-    if (SockLib::Sock::SIZE_LIMIT < size) {
+    if (SockLib::Sock::MAX_SIZE < size) {
         this->close();
-        throw SockLib::Exception("Received string size exceeds SockLib::Sock::SIZE_LIMIT");
+        throw SockLib::Exception("Received string size='{}' exceeds SockLib::Sock::MAX_SIZE", size);
     }
-    if (limit < size) {
+    if (maxBytes < size) {
         this->close();
-        throw SockLib::Exception("Received string size exceeds given limit");
+        throw SockLib::Exception("Received string size='{}' exceeds given max-bytes='{}'", size, maxBytes);
     }
 
     std::string s(static_cast<std::string::size_type>(size), '\0');
@@ -258,23 +260,23 @@ std::string SockLib::Sock::recvStr(std::size_t limit)
 }
 
 void SockLib::Sock::sendRawAllBytes(const std::byte *bytes, std::size_t size)
-{ assert(SockLib::Sock::SIZE_LIMIT >= size);
+{ assert(nullptr != bytes); assert(SockLib::Sock::MAX_SIZE >= size);
 
     SockLib::Helper::sendAll(this->m_socket, reinterpret_cast<const SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
 }
 std::size_t SockLib::Sock::sendRawSomeBytes(const std::byte *bytes, std::size_t size)
-{ assert(SockLib::Sock::SIZE_LIMIT >= size);
+{ assert(nullptr != bytes); assert(SockLib::Sock::MAX_SIZE >= size);
 
     return static_cast<std::size_t>(SockLib::Helper::send(this->m_socket, reinterpret_cast<const SockLib::Helper::Byte*>(bytes),
            static_cast<SockLib::Helper::Size>(size)));
 }
 void SockLib::Sock::recvRawAllBytes(std::byte *bytes, std::size_t size)
-{ assert(SockLib::Sock::SIZE_LIMIT >= size);
+{ assert(nullptr != bytes); assert(SockLib::Sock::MAX_SIZE >= size);
 
     SockLib::Helper::recvAll(this->m_socket, reinterpret_cast<SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
 }
 std::size_t SockLib::Sock::recvRawSomeBytes(std::byte *bytes, std::size_t size)
-{ assert(SockLib::Sock::SIZE_LIMIT >= size);
+{ assert(nullptr != bytes); assert(SockLib::Sock::MAX_SIZE >= size);
     
     return static_cast<std::size_t>(SockLib::Helper::recv(this->m_socket, reinterpret_cast<SockLib::Helper::Byte*>(bytes),
            static_cast<SockLib::Helper::Size>(size)));

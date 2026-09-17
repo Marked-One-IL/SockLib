@@ -12,11 +12,11 @@
 // Put your unsupported platform specific code here.
 #endif
 
-SockLib::Helper::StaticSocketInitAndDestroyer SockLib::Helper::g_staticSocketInitAndDestroyer;
-
 // All integers must be little endian unlike other implementations (eg: htonl()).
 // Most machines today are like that by default.
 // Then why not flip the logic and save a couple of instructions?
+// You will see use of htonl but this only setting up the sockets themselves because it's required.
+// The payload themselves are little endian.
 
 std::uint16_t SockLib::Helper::normalizeUint16(std::uint16_t i)
 {
@@ -51,6 +51,8 @@ std::uint64_t SockLib::Helper::normalizeUint64(std::uint64_t i)
 }
 
 #ifdef _WIN32
+SockLib::Helper::StaticWSAStartupAndCleanup SockLib::Helper::g_StaticWSAStartupAndCleanup;
+
 SockLib::Helper::Sock SockLib::Helper::serverInit(u_short port, bool localhost)
 {
     SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -177,6 +179,18 @@ void SockLib::Helper::close(SOCKET &sock)
         closesocket(sock);
         sock = INVALID_SOCKET;
     }
+}
+SockLib::Helper::StaticWSAStartupAndCleanup::StaticWSAStartupAndCleanup(void)
+{
+    WSADATA wsa{};
+    int res = WSAStartup(MAKEWORD(2, 2), &wsa);
+    if (0 != res) {
+        throw SockLib::Exception("Failed to initialize WSA (WSAStartup() error {})", res);
+    }
+}
+SockLib::Helper::StaticWSAStartupAndCleanup::~StaticWSAStartupAndCleanup(void)
+{
+    (void)WSACleanup(); // This can fail. But it doesn't matter and throwing here can mess up the rest of the static destructors.
 }
 
 #elif defined(__linux__) || defined(__APPLE__)
@@ -370,24 +384,3 @@ int SockLib::Helper::disableSigpipe(int sock)
 #else
 // Put your unsupported platform specific code here.
 #endif
-
-SockLib::Helper::StaticSocketInitAndDestroyer::StaticSocketInitAndDestroyer(void)
-{
-#ifdef _WIN32
-    WSADATA wsa{};
-    int res = WSAStartup(MAKEWORD(2, 2), &wsa);
-    if (0 != res) {
-        throw SockLib::Exception("Failed to initialize WSA (WSAStartup() error {})", res);
-    }
-#else
-    // Put your unsupported platform specific code here.
-#endif
-}
-SockLib::Helper::StaticSocketInitAndDestroyer::~StaticSocketInitAndDestroyer(void)
-{
-#ifdef _WIN32
-    WSACleanup();
-#else
-    // Put your unsupported platform specific code here.
-#endif
-}

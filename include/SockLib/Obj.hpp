@@ -16,12 +16,15 @@ namespace SockLib
     class Sock;
 }
 
+// Doesn't matter if it's public/private section.
+// Sending all the fields is not required.
+// But the amount of fields and their order must be the same on both ends.
 #define SOCK_LIB_OBJ_TRANSMISSION_ORDER(...) \
     friend class SockLib::Sock; \
-    auto to_tuple(void) { \
+    auto __SockLibObjToTupleConst__(void) const { \
         return std::tie(__VA_ARGS__); \
     } \
-    auto to_tuple(void) const { \
+    auto __SockLibObjToTupleNoneConst__(void) { \
         return std::tie(__VA_ARGS__); \
     }
 
@@ -47,5 +50,4 @@ namespace SockLib::Obj
     using Str     = std::string;
     using StrView = std::string_view; // Can be used only for sending. The receiving field must be 'SockLib::Obj::Str'.
 }
-
 #endif // SOCK_LIB_OBJ

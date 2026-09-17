@@ -3,6 +3,7 @@
 #include <SockLib/Helper.hpp>
 #include <SockLib/Sock.hpp>
 #include <cstdint>
+#include <chrono>
 
 namespace SockLib
 {
@@ -22,7 +23,9 @@ namespace SockLib
         SockLib::Server &operator = (SockLib::Server &&other) noexcept;
 
         Server(std::uint16_t port, SockLib::Server::Visibility visibility);
-        SockLib::Sock accept(std::size_t timeoutMS) const;
+
+        // Timeout is not set in debug mode for convenience while debugging.
+        SockLib::Sock accept(std::chrono::milliseconds timeout = SockLib::Sock::MAX_TIMEOUT) const;
 
     private:
         SockLib::Sock m_sock;

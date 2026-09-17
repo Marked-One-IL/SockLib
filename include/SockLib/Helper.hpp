@@ -54,12 +54,17 @@ namespace SockLib
         static void   recvAll    (SOCKET &sock, char       *bytes, int size);
         static void   setTimeout (SOCKET &sock, int ms);
         static void   close      (SOCKET &sock);
+        struct StaticWSAStartupAndCleanup
+        {
+            StaticWSAStartupAndCleanup(void);
+            ~StaticWSAStartupAndCleanup(void);
+        };
+        static SockLib::Helper::StaticWSAStartupAndCleanup g_StaticWSAStartupAndCleanup;
 #elif defined(__linux__) || defined(__APPLE__)
         using Size = std::size_t;
         using Byte = void; // Weird I know. This elsewhere just used to cast from std::byte* to void*
         using PortType = std::uint16_t;
         using Sock = int;
-
 #ifdef __linux__
 // Using ::send() with a broken socket can terminate the program. So we pass a 'MSG_NOSIGNAL' flag and it returns -1 instead.
         inline static constexpr int sendFlag = MSG_NOSIGNAL;
@@ -82,15 +87,6 @@ namespace SockLib
 #else
         // Put your unsupported platform specific code here.
 #endif
-        // This is currently only relavent for Windows.
-        struct StaticSocketInitAndDestroyer
-        {
-            StaticSocketInitAndDestroyer(void);
-            ~StaticSocketInitAndDestroyer(void);
-        };
-
-        static SockLib::Helper::StaticSocketInitAndDestroyer g_staticSocketInitAndDestroyer;
-
         friend class SockLib::Sock;
         friend class SockLib::Server;
     };

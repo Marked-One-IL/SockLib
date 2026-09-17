@@ -16,10 +16,12 @@ SockLib::Server::Server(std::uint16_t port, SockLib::Server::Visibility visibili
 {
 }
 
-SockLib::Sock SockLib::Server::accept(std::size_t timeoutMS) const
-{ assert(SockLib::Sock::TIMEOUT_LIMIT >= timeoutMS);
+SockLib::Sock SockLib::Server::accept(std::chrono::milliseconds timeout) const
+{ assert(SockLib::Sock::MAX_TIMEOUT >= timeout);
 
     SockLib::Sock sock = SockLib::Helper::accept(this->m_sock.m_socket);
-    SockLib::Helper::setTimeout(sock.m_socket, static_cast<SockLib::Helper::TimeoutType>(timeoutMS));
+#ifdef NDEBUG // While debugging putting a timeout can become extremely annoying.
+    SockLib::Helper::setTimeout(sock.m_socket, static_cast<SockLib::Helper::TimeoutType>(timeout.count()));
+#endif
     return sock;
 }
