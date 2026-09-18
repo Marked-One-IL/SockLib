@@ -50,10 +50,10 @@ namespace SockLib::Obj
     using Bytes     = std::vector<std::byte>;
     using BytesSpan = std::span<std::byte>; // Can be used only for sending. The receiving field must be 'SockLib::Obj::Bytes'.
 
-    using Bool    = bool;
-    using Char    = char;
-    using Int     = int;
-    using Float   = float;
+    using Bool    = bool;  // On the network it's 'std::uint8_t'.
+    using Char    = char;  // On the network it's 'std::uint8_t'.
+    using Int     = int;   // On the network it's 'std::int32_t'.
+    using Float   = float; // On the network it's 'SockLib::Helper::float64_t'.
     using Str     = std::string;
     using StrView = std::string_view; // Can be used only for sending. The receiving field must be 'SockLib::Obj::Str'.
 }
