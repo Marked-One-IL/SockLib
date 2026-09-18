@@ -54,6 +54,8 @@ namespace SockLib
         void sendFloat32 (SockLib::Helper::float32_t             f);
         void sendFloat64 (SockLib::Helper::float64_t             f);
         void sendBytes   (const std::byte *bytes, std::size_t size); // This is specified with a size - [uint32_t: size][byte[] N]
+        void sendBytes   (const std::vector<std::byte> &bytes); // This is specified with a size - [uint32_t: size][byte[] N]
+        void sendBytes   (std::span<const std::byte> bytes); // This is specified with a size - [uint32_t: size][byte[] N]
 
         void sendBool  (bool             b); // On the network it's 'std::uint8_t'.
         void sendChar  (char             c); // On the network it's 'std::uint8_t'.
@@ -134,10 +136,10 @@ inline void SockLib::Sock::sendObj(const Obj &obj)
             this->sendFloat64(field);
         }
         else if constexpr (std::is_same_v<Type, SockLib::Obj::Bytes>) {
-            this->sendBytes(field.get(), field.size());
+            this->sendBytes(field);
         }
         else if constexpr (std::is_same_v<Type, SockLib::Obj::BytesSpan>) {
-            this->sendBytes(field.get(), field.size());
+            this->sendBytes(field);
         }
         else if constexpr (std::is_same_v<Type, SockLib::Obj::Bool>) {
             this->sendBool(field);

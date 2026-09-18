@@ -48,7 +48,7 @@ namespace SockLib::Obj
     using Float32   = SockLib::Helper::float32_t;
     using Float64   = SockLib::Helper::float64_t;
     using Bytes     = std::vector<std::byte>;
-    using BytesSpan = std::span<std::byte>; // Can be used only for sending. The receiving field must be 'SockLib::Obj::Bytes'.
+    using BytesSpan = std::span<const std::byte>; // Can be used only for sending. The receiving field must be 'SockLib::Obj::Bytes'.
 
     using Bool    = bool;  // On the network it's 'std::uint8_t'.
     using Char    = char;  // On the network it's 'std::uint8_t'.

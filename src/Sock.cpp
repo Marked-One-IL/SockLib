@@ -95,6 +95,14 @@ void SockLib::Sock::sendBytes(const std::byte *bytes, std::size_t size)
     this->sendUint32(static_cast<std::size_t>(size));
     this->sendRawAllBytes(bytes, size);
 }
+void SockLib::Sock::sendBytes(const std::vector<std::byte> &bytes)
+{
+    this->sendBytes(bytes.data(), bytes.size());
+}
+void SockLib::Sock::sendBytes(std::span<const std::byte> bytes)
+{
+    this->sendBytes(bytes.data(), bytes.size());
+}
 
 void SockLib::Sock::sendBool(bool b)
 {
