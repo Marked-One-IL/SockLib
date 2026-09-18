@@ -31,7 +31,8 @@ struct Vec2
         std::cout << "y: " << y << '\n';
     }
 
-    SOCK_LIB_OBJ_TRANSMISSION_ORDER(x, y)
+private:
+    SOCK_LIB_OBJ_DEFINE_PROTOCOL(x, y)
 };
 ```
 - Server

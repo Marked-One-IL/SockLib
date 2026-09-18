@@ -161,7 +161,7 @@ inline void SockLib::Sock::sendObj(const Obj &obj)
             this->sendObj(field); // Attempt to send nested object.
         }
 
-    }(),...); }, obj.__SockLibObjToTupleConst__());
+    }(),...); }, obj._SockLibObjToTupleConst());
 }
 template <typename Obj, typename ...ConstructorArgs>
 inline Obj SockLib::Sock::recvObjDynamic(std::size_t dynamicMaxBytes, ConstructorArgs &&...constructorArgs)
@@ -225,7 +225,7 @@ inline Obj SockLib::Sock::recvObjStatic(ConstructorArgs &&...constructorArgs)
             field = this->recvObjStatic<Type>(); // Attempt to receive nested object.
         }
 
-    }(), ...); }, obj.__SockLibObjToTupleNoneConst__());
+    }(), ...); }, obj._SockLibObjToTupleNoneConst());
 
     return obj;
 }
@@ -302,7 +302,7 @@ inline Obj SockLib::Sock::recvObjDynamicImpl(std::size_t dynamicMaxBytes, std::s
             gainedDynamicBytes += outGainedDynamicBytes;
         }
 
-    }(),...); }, obj.__SockLibObjToTupleNoneConst__());
+    }(),...); }, obj._SockLibObjToTupleNoneConst());
 
     outGainedDynamicBytes = gainedDynamicBytes;
     return obj;

@@ -16,15 +16,22 @@ namespace SockLib
     class Sock;
 }
 
-// Doesn't matter if it's public/private section.
+
+// "Why not create an interface?".
+// The reason I don't it's because of the limition of C++.
+// 'auto' here does a lot of the heavy lifting but without it unlimited arguments (...) are not useable.
+// A virtual method cannot use that 'auto' trick.
+// Also it doesn't look that nice.
+
+// Doesn't matter if it's in the public/private section (But it's recommended to put this in the private section).
 // Sending all the fields is not required.
 // But the amount of fields and their order must be the same on both ends.
-#define SOCK_LIB_OBJ_TRANSMISSION_ORDER(...) \
+#define SOCK_LIB_OBJ_DEFINE_PROTOCOL(...) \
     friend class SockLib::Sock; \
-    auto __SockLibObjToTupleConst__(void) const { \
+    auto _SockLibObjToTupleConst(void) const { \
         return std::tie(__VA_ARGS__); \
     } \
-    auto __SockLibObjToTupleNoneConst__(void) { \
+    auto _SockLibObjToTupleNoneConst(void) { \
         return std::tie(__VA_ARGS__); \
     }
 
