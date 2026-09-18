@@ -53,15 +53,15 @@ namespace SockLib
         void sendUint64  (std::uint64_t                          i);
         void sendFloat32 (SockLib::Helper::float32_t             f);
         void sendFloat64 (SockLib::Helper::float64_t             f);
-        void sendBytes   (const std::byte *bytes, std::size_t size); // This is specified with a size - [uint32_t: size][byte[] N]
-        void sendBytes   (const std::vector<std::byte> &bytes); // This is specified with a size - [uint32_t: size][byte[] N]
-        void sendBytes   (std::span<const std::byte> bytes); // This is specified with a size - [uint32_t: size][byte[] N]
+        void sendBytes   (const std::byte *bytes, std::size_t size); // On the network this is specified with a size - [uint32_t: size][byte[] N]
+        void sendBytes   (const std::vector<std::byte> &bytes); // On the network this is specified with a size - [uint32_t: size][byte[] N]
+        void sendBytes   (std::span<const std::byte> bytes); // On the network this is specified with a size - [uint32_t: size][byte[] N]
 
         void sendBool  (bool             b); // On the network it's 'std::uint8_t'.
         void sendChar  (char             c); // On the network it's 'std::uint8_t'.
         void sendInt   (int              i); // On the network it's 'std::int32_t'.
         void sendFloat (float            f); // On the network it's 'SockLib::Helper::float32_t'.
-        void sendStr   (std::string_view s); // This is specified with a size - [uint32_t: size][byte[] N]
+        void sendStr   (std::string_view s); // On the network this is specified with a size - [uint32_t: size][byte[] N]
 
         std::int8_t                recvInt8    (void);
         std::uint8_t               recvUint8   (void);
@@ -73,13 +73,13 @@ namespace SockLib
         std::uint64_t              recvUint64  (void);
         SockLib::Helper::float32_t recvFloat32 (void);
         SockLib::Helper::float64_t recvFloat64 (void);
-        std::vector<std::byte>     recvBytes   (std::size_t maxBytes); // This is specified with a size - [uint32_t: size][byte[] N]
+        std::vector<std::byte>     recvBytes   (std::size_t maxBytes); // On the network this is specified with a size - [uint32_t: size][byte[] N]
 
         bool        recvBool  (void); // On the network it's 'std::uint8_t'.
         char        recvChar  (void); // On the network it's 'std::uint8_t'.
         int         recvInt   (void); // On the network it's 'std::int32_t'.
         float       recvFloat (void); // On the network it's 'SockLib::Helper::float32_t'.
-        std::string recvStr   (std::size_t maxBytes); // This is specified with a size - [uint32_t: size][byte[] N]
+        std::string recvStr   (std::size_t maxBytes); // On the network this is specified with a size - [uint32_t: size][byte[] N]
 
         void        sendRawAllBytes  (const std::byte *bytes, std::size_t size);
         std::size_t sendRawSomeBytes (const std::byte *bytes, std::size_t size); // Send bytes as the OS can. For size > 0: Sent bytes will be at least one.
