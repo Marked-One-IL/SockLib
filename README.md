@@ -1,3 +1,8 @@
+# Notice
+The library is frequently updated and so it's design.<br>
+While it's currently usable I won't called it finished or my final product.<br>
+This repository is currently just public development.<br>
+
 # About
 A simple, safe and explicit TCP socket library for C++.<br>
 - The library support Windows, Linux and Mac.<br>
