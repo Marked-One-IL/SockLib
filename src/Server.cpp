@@ -20,7 +20,7 @@ SockLib::Sock SockLib::Server::accept(std::chrono::milliseconds timeout) const
 { assert(SockLib::Sock::MAX_TIMEOUT >= timeout);
 
     SockLib::Sock sock = SockLib::Helper::accept(this->m_sock.m_socket);
-#ifdef NDEBUG // While debugging putting a timeout can become extremely annoying.
+#ifndef SOCK_LIB_DISABLE_TIMEOUT
     SockLib::Helper::setTimeout(sock.m_socket, static_cast<SockLib::Helper::TimeoutType>(timeout.count()));
 #endif
     return sock;

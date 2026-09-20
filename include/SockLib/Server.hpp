@@ -24,7 +24,6 @@ namespace SockLib
 
         Server(std::uint16_t port, SockLib::Server::Visibility visibility);
 
-        // Timeout is not set in debug mode for convenience while debugging.
         SockLib::Sock accept(std::chrono::milliseconds timeout = SockLib::Sock::MAX_TIMEOUT) const;
 
     private:

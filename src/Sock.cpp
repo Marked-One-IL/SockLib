@@ -9,7 +9,7 @@ SockLib::Sock SockLib::Sock::connect(const char *address, std::uint16_t port, st
 
     std::string portStr = std::to_string(static_cast<int>(port));
     SockLib::Sock sock = SockLib::Sock(SockLib::Helper::connect(address, portStr.c_str()));
-#ifdef NDEBUG // While debugging putting a timeout can become extremely annoying.
+#ifndef SOCK_LIB_DISABLE_TIMEOUT
     SockLib::Helper::setTimeout(sock.m_socket, static_cast<SockLib::Helper::TimeoutType>(timeout.count()));
 #endif
     return sock;

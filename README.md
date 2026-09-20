@@ -8,13 +8,19 @@ But raw communication methods are still available for more niche cases.<br>
 
 # CMake
 Before creating target.<br>
-- Make sure you have the directory 'third_party' in your project root.
+- Make sure the library is in the directory 'third_party'.
 ```cmake
 add_subdirectory("third_party/SockLib")
 ```
 After creating target.<br>
 ```cmake
 target_link_libraries(TARGET_NAME PRIVATE SockLib)
+```
+After creating target **(optional)**.<br>
+- This disables timeout for sockets no matter what.<br>
+- **It's recommended to only use this during development**.
+```cmake
+target_compile_definitions(SockLib PRIVATE SOCK_LIB_DISABLE_TIMEOUT)
 ```
 
 # Example

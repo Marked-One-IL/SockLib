@@ -21,7 +21,6 @@ namespace SockLib
         inline static constexpr std::chrono::milliseconds MAX_TIMEOUT = std::chrono::milliseconds(10000);
         inline static constexpr const char               *LOCALHOST   = "127.0.0.1";
 
-        // Timeout is not set in debug mode for convenience while debugging.
         static SockLib::Sock connect(const char *address, std::uint16_t port, std::chrono::milliseconds timeout = SockLib::Sock::MAX_TIMEOUT);
         void close(void);
         ~Sock(void);
