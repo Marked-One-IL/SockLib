@@ -1,6 +1,8 @@
 #include <SockLib/Helper.hpp>
 #include <SockLib/Exception.hpp>
+#include <iostream>
 #include <bit>
+#include <cstdlib>
 
 #ifdef _WIN32
 #include <ws2tcpip.h>
@@ -51,13 +53,13 @@ std::uint64_t SockLib::Helper::normalizeUint64(std::uint64_t i)
 }
 
 #ifdef _WIN32
-SockLib::Helper::StaticWSAStartupAndCleanup SockLib::Helper::g_StaticWSAStartupAndCleanup;
+SockLib::Helper::StaticWSAStartupAndCleanup SockLib::Helper::g_staticWSAStartupAndCleanup;
 
 SockLib::Helper::Sock SockLib::Helper::serverInit(u_short port, bool localhost)
 {
     SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (INVALID_SOCKET == sock) {
-        throw SockLib::Exception("Failed to initialize socket (WSA error {})", WSAGetLastError());
+        throw SockLib::Exception(std::format("Failed to initialize socket (WSA error {})", WSAGetLastError()));
     }
 
     sockaddr_in serverAddress{};
@@ -68,12 +70,12 @@ SockLib::Helper::Sock SockLib::Helper::serverInit(u_short port, bool localhost)
     if (SOCKET_ERROR == bind(sock, (sockaddr*)&serverAddress, static_cast<int>(sizeof(serverAddress)))) {
         int err = WSAGetLastError();
         closesocket(sock);
-        throw SockLib::Exception("Failed to bind server on port '{}' (WSA error {})", port, err);
+        throw SockLib::Exception(std::format("Failed to bind server on port '{}' (WSA error {})", port, err));
     }
     if (SOCKET_ERROR == listen(sock, SOMAXCONN)) {
         int err = WSAGetLastError();
         closesocket(sock);
-        throw SockLib::Exception("Failed to make server listen on port '{}' (WSA error {})", port, err);
+        throw SockLib::Exception(std::format("Failed to make server listen on port '{}' (WSA error {})", port, err));
     }
 
     return sock;
@@ -87,7 +89,7 @@ SockLib::Helper::Sock SockLib::Helper::connect(const char *address, const char *
     addrinfo *result = nullptr;
     int err = getaddrinfo(address, port, &hints, &result);
     if (0 != err) { 
-        throw SockLib::Exception("Could not resolve '{}:{}' (getaddrinfo error {})", address, port, err);
+        throw SockLib::Exception(std::format("Could not resolve '{}:{}' (getaddrinfo error {})", address, port, err));
     }
 
     err = 0;
@@ -109,13 +111,13 @@ SockLib::Helper::Sock SockLib::Helper::connect(const char *address, const char *
     }
     freeaddrinfo(result);
 
-    throw SockLib::Exception("Could not connect to '{}:{}' (WSA error {})", address, port, err);
+    throw SockLib::Exception(std::format("Could not connect to '{}:{}' (WSA error {})", address, port, err));
 }
 SOCKET SockLib::Helper::accept(SOCKET sock)
 {
     SOCKET newSock = ::accept(sock, nullptr, nullptr);
     if (INVALID_SOCKET == newSock) {
-        throw SockLib::Exception("Failed to accept client (WSA error {})", WSAGetLastError());
+        throw SockLib::Exception(std::format("Failed to accept client (WSA error {})", WSAGetLastError()));
     }
     return newSock;
 }
@@ -125,7 +127,7 @@ int SockLib::Helper::send(SOCKET &sock, const char *bytes, int size)
     if (SOCKET_ERROR == sent) {
 		int err = WSAGetLastError();
         SockLib::Helper::close(sock);
-        throw SockLib::Exception("Failed to send data (WSA error {})", err);
+        throw SockLib::Exception(std::format("Failed to send data (WSA error {})", err));
     }
     return sent;
 }
@@ -142,7 +144,7 @@ int SockLib::Helper::recv(SOCKET &sock, char *bytes, int size)
     if (SOCKET_ERROR == received) {
 		int err = WSAGetLastError();
         SockLib::Helper::close(sock);
-        throw SockLib::Exception("Failed to receive data (WSA error {})", err);
+        throw SockLib::Exception(std::format("Failed to receive data (WSA error {})", err));
     }
     if (0 == received) {
         if (0 == size) {
@@ -165,12 +167,12 @@ void SockLib::Helper::setTimeout(SOCKET &sock, int ms)
     if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&ms), static_cast<int>(sizeof(ms)))) {
 		int err = WSAGetLastError();
         SockLib::Helper::close(sock);
-        throw SockLib::Exception("Failed to set receive timeout (WSA error {})", err);
+        throw SockLib::Exception(std::format("Failed to set receive timeout (WSA error {})", err));
     }
     if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&ms), static_cast<int>(sizeof(ms)))) {
 		int err = WSAGetLastError();
         SockLib::Helper::close(sock);
-        throw SockLib::Exception("Failed to set send timeout (WSA error {})", err);
+        throw SockLib::Exception(std::format("Failed to set send timeout (WSA error {})", err));
     }
 }
 void SockLib::Helper::close(SOCKET &sock)
@@ -185,12 +187,16 @@ SockLib::Helper::StaticWSAStartupAndCleanup::StaticWSAStartupAndCleanup(void)
     WSADATA wsa{};
     int res = WSAStartup(MAKEWORD(2, 2), &wsa);
     if (0 != res) {
-        throw SockLib::Exception("Failed to initialize WSA (WSAStartup() error {})", res);
+        std::cerr << std::format("Failed to initialize WSA (WSAStartup() error {})\n", res);
+        std::exit(EXIT_FAILURE); // An exception is not enough. Because the program cannot continue.
     }
 }
 SockLib::Helper::StaticWSAStartupAndCleanup::~StaticWSAStartupAndCleanup(void)
 {
-    (void)WSACleanup(); // This can fail. But it doesn't matter and throwing here can mess up the rest of the static destructors.
+    if (0 != WSACleanup()) {
+        std::cerr << std::format("Failed to destruct WSA (WSA error {})\n", WSAGetLastError());
+        // No exit. We must preserve the static destructors. And this is in the state of exit anyway.
+    }
 }
 
 #elif defined(__linux__) || defined(__APPLE__)
@@ -198,13 +204,13 @@ int SockLib::Helper::serverInit(std::uint16_t port, bool localhost)
 {
     int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     if (-1 == sock) {
-        throw SockLib::Exception("Failed to initialize socket (errno error {})", errno);
+        throw SockLib::Exception(std::format("Failed to initialize socket (errno error {})", errno));
     }
 #ifdef __APPLE__
     int err = SockLib::Helper::disableSigpipe(sock);
     if (err) {
         ::close(sock);
-        throw SockLib::Exception("Failed to disable SIGPIPE (errno error {})", err);
+        throw SockLib::Exception(std::format("Failed to disable SIGPIPE (errno error {})", err));
     }
 #endif
 
@@ -212,7 +218,7 @@ int SockLib::Helper::serverInit(std::uint16_t port, bool localhost)
     if (-1 == setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &enableReuseaddr, sizeof(enableReuseaddr))) {
         int err2 = errno;
         ::close(sock);
-        throw SockLib::Exception("Failed to set SO_REUSEADDR (errno error {})", err2);
+        throw SockLib::Exception(std::format("Failed to set SO_REUSEADDR (errno error {})", err2));
     }
 
     sockaddr_in serverAddress{};
@@ -223,12 +229,12 @@ int SockLib::Helper::serverInit(std::uint16_t port, bool localhost)
     if (-1 == bind(sock, (sockaddr*)&serverAddress, static_cast<socklen_t>(sizeof(serverAddress)))) {
         int err2 = errno;
         ::close(sock);
-        throw SockLib::Exception("Failed to bind server on port '{}' (errno error {})", port, err2);
+        throw SockLib::Exception(std::format("Failed to bind server on port '{}' (errno error {})", port, err2));
     }
     if (-1 == listen(sock, SOMAXCONN)) {
         int err2 = errno;
         ::close(sock);
-        throw SockLib::Exception("Failed to make server listen on port '{}' (errno error {})", port, err2);
+        throw SockLib::Exception(std::format("Failed to make server listen on port '{}' (errno error {})", port, err2));
     }
 
     return sock;
@@ -242,7 +248,7 @@ int SockLib::Helper::connect(const char *address, const char *port)
     addrinfo *result = nullptr;
     int err = getaddrinfo(address, port, &hints, &result);
     if (0 != err) { 
-        throw SockLib::Exception("Could not resolve '{}:{}' (getaddrinfo error {})", address, port, err);
+        throw SockLib::Exception(std::format("Could not resolve '{}:{}' (getaddrinfo error {})", address, port, err));
     }
 
     err = 0;
@@ -259,7 +265,7 @@ int SockLib::Helper::connect(const char *address, const char *port)
         if (err2) {
             ::close(sock);
             freeaddrinfo(result);
-            throw SockLib::Exception("Failed to disable SIGPIPE (errno error {})", err2);
+            throw SockLib::Exception(std::format("Failed to disable SIGPIPE (errno error {})", err2));
         }
 #endif
 
@@ -275,7 +281,7 @@ int SockLib::Helper::connect(const char *address, const char *port)
         }
     }
     freeaddrinfo(result);
-    throw SockLib::Exception("Could not connect to '{}:{}' (errno error {})", address, port, err);
+    throw SockLib::Exception(std::format("Could not connect to '{}:{}' (errno error {})", address, port, err));
 }
 int SockLib::Helper::accept(int sock)
 {
@@ -285,13 +291,13 @@ int SockLib::Helper::accept(int sock)
         if (EINTR == errno) {
             goto restart;
         }
-        throw SockLib::Exception("Failed to accept client (errno error {})", errno);
+        throw SockLib::Exception(std::format("Failed to accept client (errno error {})", errno));
     }
 #ifdef __APPLE__
     int err = SockLib::Helper::disableSigpipe(newSock);
     if (err) {
         ::close(newSock);
-        throw SockLib::Exception("Failed to disable SIGPIPE (errno error {})", err);
+        throw SockLib::Exception(std::format("Failed to disable SIGPIPE (errno error {})", err));
     }
 #endif
     return newSock;
@@ -306,7 +312,7 @@ ssize_t SockLib::Helper::send(int &sock, const void *bytes, std::size_t size)
         }
 		int err = errno;
         SockLib::Helper::close(sock);
-        throw SockLib::Exception("Failed to send data (errno error {})", err);
+        throw SockLib::Exception(std::format("Failed to send data (errno error {})", err));
     }
     return sent;
 }
@@ -328,7 +334,7 @@ ssize_t SockLib::Helper::recv(int &sock, void *bytes, std::size_t size)
         }
 		int err = errno;
         SockLib::Helper::close(sock);
-        throw SockLib::Exception("Failed to receive data (errno error {})", err);
+        throw SockLib::Exception(std::format("Failed to receive data (errno error {})", err));
     }
     if (0 == received) {
         if (0 == size) {
@@ -356,12 +362,12 @@ void SockLib::Helper::setTimeout(int &sock, int ms)
     if (-1 == setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, static_cast<socklen_t>(sizeof(tv)))) {
 		int err = errno;
         SockLib::Helper::close(sock);
-        throw SockLib::Exception("Failed to set receive timeout (errno error {})", err);
+        throw SockLib::Exception(std::format("Failed to set receive timeout (errno error {})", err));
     }
     if (-1 == setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, static_cast<socklen_t>(sizeof(tv)))) {
 		int err = errno;
         SockLib::Helper::close(sock);
-        throw SockLib::Exception("Failed to set send timeout (errno error {})", err);
+        throw SockLib::Exception(std::format("Failed to set send timeout (errno error {})", err));
     }
 }
 void SockLib::Helper::close(int &sock)

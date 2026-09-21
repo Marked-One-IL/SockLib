@@ -24,7 +24,7 @@ namespace SockLib
 
         Server(std::uint16_t port, SockLib::Server::Visibility visibility);
 
-        SockLib::Sock accept(std::chrono::milliseconds timeout = SockLib::Sock::MAX_TIMEOUT) const;
+        SockLib::Sock accept(void) const;
 
     private:
         SockLib::Sock m_sock;

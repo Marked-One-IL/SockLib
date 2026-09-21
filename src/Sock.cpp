@@ -1,18 +1,25 @@
+#include "..\include\SockLib\Sock.hpp"
+#include "..\include\SockLib\Sock.hpp"
 #include <SockLib/Sock.hpp>
 #include <SockLib/Exception.hpp>
 #include <cstring>
 #include <cassert>
 #include <cmath>
 
-SockLib::Sock SockLib::Sock::connect(const char *address, std::uint16_t port, std::chrono::milliseconds timeout)
-{ assert(SockLib::Sock::MAX_TIMEOUT >= timeout);
-
+SockLib::Sock SockLib::Sock::connect(const char *address, std::uint16_t port)
+{
     std::string portStr = std::to_string(static_cast<int>(port));
     SockLib::Sock sock = SockLib::Sock(SockLib::Helper::connect(address, portStr.c_str()));
-#ifndef SOCK_LIB_DISABLE_TIMEOUT
-    SockLib::Helper::setTimeout(sock.m_socket, static_cast<SockLib::Helper::TimeoutType>(timeout.count()));
-#endif
     return sock;
+}
+void SockLib::Sock::setTimeout(std::chrono::milliseconds duration)
+{ assert(SockLib::Sock::MAX_TIMEOUT <= duration);
+
+    SockLib::Helper::setTimeout(this->m_socket, static_cast<SockLib::Helper::TimeoutType>(duration.count()));
+}
+void SockLib::Sock::disableTimeout(void)
+{
+    SockLib::Helper::setTimeout(this->m_socket, 0);
 }
 void SockLib::Sock::close(void)
 {
@@ -207,11 +214,11 @@ std::vector<std::byte> SockLib::Sock::recvBytes(std::size_t maxBytes)
     std::size_t size = static_cast<std::size_t>(this->recvUint32());
     if (SockLib::Sock::MAX_SIZE < size) {
         this->close();
-        throw SockLib::Exception("Received bytes size='{}' exceeds SockLib::Sock::MAX_SIZE", size);
+        throw SockLib::Exception(std::format("Received bytes size='{}' exceeds SockLib::Sock::MAX_SIZE", size));
     }
     if (maxBytes < size) {
         this->close();
-        throw SockLib::Exception("Received bytes size='{}' exceeds given max-bytes='{}'", size, maxBytes);
+        throw SockLib::Exception(std::format("Received bytes size='{}' exceeds given max-bytes='{}'", size, maxBytes));
     }
 
     std::vector<std::byte> v(static_cast<std::vector<std::byte>::size_type>(size), std::byte{});
@@ -246,11 +253,11 @@ std::string SockLib::Sock::recvStr(std::size_t maxBytes)
     std::size_t size = static_cast<std::size_t>(this->recvUint32());
     if (SockLib::Sock::MAX_SIZE < size) {
         this->close();
-        throw SockLib::Exception("Received string size='{}' exceeds SockLib::Sock::MAX_SIZE", size);
+        throw SockLib::Exception(std::format("Received string size='{}' exceeds SockLib::Sock::MAX_SIZE", size));
     }
     if (maxBytes < size) {
         this->close();
-        throw SockLib::Exception("Received string size='{}' exceeds given max-bytes='{}'", size, maxBytes);
+        throw SockLib::Exception(std::format("Received string size='{}' exceeds given max-bytes='{}'", size, maxBytes));
     }
 
     std::string s(static_cast<std::string::size_type>(size), '\0');

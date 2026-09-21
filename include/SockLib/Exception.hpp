@@ -16,19 +16,11 @@ namespace SockLib
     class Exception : public std::runtime_error
     {
     private:
-        template <typename... Args>
-        Exception(std::format_string<Args...> fmt, Args &&...args);
-
+        Exception(const std::string &s);
         Exception(const char *s);
 
         friend class SockLib::Helper;
         friend class SockLib::Sock;
     };
-}
-
-template <typename... Args>
-inline SockLib::Exception::Exception(std::format_string<Args...> fmt, Args &&...args) :
-    std::runtime_error(std::format(fmt, std::forward<Args>(args)...))
-{
 }
 #endif // SOCK_LIB_EXCEPTION

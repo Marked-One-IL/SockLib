@@ -21,12 +21,6 @@ After creating target.<br>
 ```cmake
 target_link_libraries(TARGET_NAME PRIVATE SockLib)
 ```
-After creating target **(optional)**.<br>
-- This disables timeout for sockets no matter what.<br>
-- **It's recommended to only use this during development**.
-```cmake
-target_compile_definitions(SockLib PRIVATE SOCK_LIB_DISABLE_TIMEOUT)
-```
 
 # Example
 - Shared Object

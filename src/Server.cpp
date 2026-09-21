@@ -16,12 +16,8 @@ SockLib::Server::Server(std::uint16_t port, SockLib::Server::Visibility visibili
 {
 }
 
-SockLib::Sock SockLib::Server::accept(std::chrono::milliseconds timeout) const
-{ assert(SockLib::Sock::MAX_TIMEOUT >= timeout);
-
+SockLib::Sock SockLib::Server::accept(void) const
+{
     SockLib::Sock sock = SockLib::Helper::accept(this->m_sock.m_socket);
-#ifndef SOCK_LIB_DISABLE_TIMEOUT
-    SockLib::Helper::setTimeout(sock.m_socket, static_cast<SockLib::Helper::TimeoutType>(timeout.count()));
-#endif
     return sock;
 }

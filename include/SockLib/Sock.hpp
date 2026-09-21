@@ -18,10 +18,12 @@ namespace SockLib
     {
     public:
         inline static constexpr std::size_t               MAX_SIZE    = 2147483647;
-        inline static constexpr std::chrono::milliseconds MAX_TIMEOUT = std::chrono::milliseconds(10000);
+        inline static constexpr std::chrono::milliseconds MAX_TIMEOUT = std::chrono::milliseconds(2147483647);
         inline static constexpr const char               *LOCALHOST   = "127.0.0.1";
 
-        static SockLib::Sock connect(const char *address, std::uint16_t port, std::chrono::milliseconds timeout = SockLib::Sock::MAX_TIMEOUT);
+        static SockLib::Sock connect(const char *address, std::uint16_t port);
+        void setTimeout(std::chrono::milliseconds duration); // This apply for sending and receiving.
+        void disableTimeout(void); // This apply for sending and receiving.
         void close(void);
         ~Sock(void);
 
@@ -243,7 +245,7 @@ inline Obj SockLib::Sock::recvObjDynamicImpl(std::size_t dynamicMaxBytes, std::s
         using Type = std::remove_reference_t<decltype(field)>;
         if (gainedDynamicBytes > dynamicMaxBytes) {
             this->close();
-            throw SockLib::Exception("Received object size exceeds given limit");
+            throw SockLib::Exception(std::format("Gained object size='{}' exceeds SockLib::Sock::MAX_SIZE", gainedDynamicBytes));
         }
 
         if constexpr (std::is_same_v<Type, SockLib::Obj::Int8>) {

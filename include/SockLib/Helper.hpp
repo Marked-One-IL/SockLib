@@ -47,7 +47,7 @@ namespace SockLib
 
         static SOCKET serverInit (u_short port, bool localhost);
         static SOCKET connect    (const char *address, const char *port);
-        static SOCKET accept     (SOCKET  sock);
+        static SOCKET accept     (SOCKET  sock); // No &sock because the server socket is not in danger.
         static int    send       (SOCKET &sock, const char *bytes, int size);
         static void   sendAll    (SOCKET &sock, const char *bytes, int size);
         static int    recv       (SOCKET &sock, char       *bytes, int size);
@@ -59,7 +59,7 @@ namespace SockLib
             StaticWSAStartupAndCleanup(void);
             ~StaticWSAStartupAndCleanup(void);
         };
-        static SockLib::Helper::StaticWSAStartupAndCleanup g_StaticWSAStartupAndCleanup;
+        static SockLib::Helper::StaticWSAStartupAndCleanup g_staticWSAStartupAndCleanup;
 #elif defined(__linux__) || defined(__APPLE__)
         using Size = std::size_t;
         using Byte = void; // Weird I know. This elsewhere just used to cast from std::byte* to void*
