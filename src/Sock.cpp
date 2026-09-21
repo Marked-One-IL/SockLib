@@ -1,5 +1,3 @@
-#include "..\include\SockLib\Sock.hpp"
-#include "..\include\SockLib\Sock.hpp"
 #include <SockLib/Sock.hpp>
 #include <SockLib/Exception.hpp>
 #include <cstring>
