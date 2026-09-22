@@ -19,11 +19,13 @@ namespace SockLib
     public:
         inline static constexpr std::size_t               MAX_SIZE       = 2147483647;
         inline static constexpr std::chrono::milliseconds MAX_TIMEOUT    = std::chrono::milliseconds(2147483647);
-        inline static constexpr const char               *LOCALHOST_ADDR = "localhost"; // Works for both ipv4 and ipv6.
+        inline static constexpr const char               *LOOPBACK_IPV4_ADDR = "127.0.0.1"; // For SockLib::Server::IPver::IPV4_ONLY
+        inline static constexpr const char               *LOOPBACK_IPV6_ADDR = "::1"; // This is for For SockLib::Server::IPver::IPV6_ONLY/BOTH_IPV4N6.
+        // "localhost" is defined by the OS configurations. So it's not reliable. For example on Linux Mint you have to manually define it for IPv6.
 
         static SockLib::Sock connect(const char *address, std::uint16_t port); // Address can be an url, ipv6 and ipv6 and so on.
         void setTimeout(std::chrono::milliseconds duration); // This apply for sending and receiving.
-        void turnOffTimeout(void); // This apply for sending and receiving.
+        void setOffTimeout(void); // This apply for sending and receiving.
         void close(void);
         ~Sock(void);
 

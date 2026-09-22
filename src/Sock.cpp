@@ -15,7 +15,7 @@ void SockLib::Sock::setTimeout(std::chrono::milliseconds duration)
 
     SockLib::Helper::setTimeout(this->m_sock, static_cast<SockLib::Helper::TimeoutType>(duration.count()));
 }
-void SockLib::Sock::turnOffTimeout(void)
+void SockLib::Sock::setOffTimeout(void)
 {
     SockLib::Helper::setTimeout(this->m_sock, 0);
 }

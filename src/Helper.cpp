@@ -82,7 +82,6 @@ SockLib::Helper::Sock SockLib::Helper::serverInit(u_short port, bool loopback, b
 
         return sock;
     }
-    // if ipv6
 
     SOCKET sock = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
     if (INVALID_SOCKET == sock) {
@@ -117,7 +116,7 @@ SockLib::Helper::Sock SockLib::Helper::serverInit(u_short port, bool loopback, b
 SockLib::Helper::Sock SockLib::Helper::connect(const char *address, const char *port)
 {
     addrinfo hints{};
-    hints.ai_family = AF_UNSPEC;
+    hints.ai_family   = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
     addrinfo *result = nullptr;
@@ -234,41 +233,61 @@ SockLib::Helper::StaticWSAStartupAndCleanup::~StaticWSAStartupAndCleanup(void)
 }
 
 #elif defined(__linux__) || defined(__APPLE__)
-int SockLib::Helper::serverInit(std::uint16_t port, bool localhost)
-{
-    int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+int SockLib::Helper::serverInit(std::uint16_t port, bool loopback, bool ipv4, bool ipv6)
+{ assert((true == ipv4) || (true == ipv6));
+
+    if (!ipv6)
+    {
+        int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        if (-1 == sock) {
+            throw SockLib::Exception(std::format("Failed to initialize socket (errno error {})", errno));
+        }
+
+        sockaddr_in serverAddress{};
+        serverAddress.sin_family = AF_INET;
+        serverAddress.sin_addr.s_addr = htonl(loopback ? INADDR_LOOPBACK : INADDR_ANY);
+        serverAddress.sin_port = htons(port);
+
+        if (-1 == bind(sock, reinterpret_cast<sockaddr*>(&serverAddress), sizeof(serverAddress))) {
+            int err = errno;
+            ::close(sock);
+            throw SockLib::Exception(std::format("Failed to bind server on port '{}' (errno error {})", port, err));
+        }
+        if (-1 == listen(sock, SOMAXCONN)) {
+            int err = errno;
+            ::close(sock);
+            throw SockLib::Exception(std::format("Failed to make server listen on port '{}' (errno error {})", port, err));
+        }
+
+        return sock;
+    }
+
+    int sock = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
     if (-1 == sock) {
         throw SockLib::Exception(std::format("Failed to initialize socket (errno error {})", errno));
     }
-#ifdef __APPLE__
-    int err = SockLib::Helper::disableSigpipe(sock);
-    if (err) {
-        ::close(sock);
-        throw SockLib::Exception(std::format("Failed to disable SIGPIPE (errno error {})", err));
-    }
-#endif
 
-    int enableReuseaddr = 1;
-    if (-1 == setsockopt(sock, SOL_SOCKET, SO_REUSEADDR, &enableReuseaddr, sizeof(enableReuseaddr))) {
-        int err2 = errno;
+    int ipv6Only = static_cast<int>(!ipv4);
+    if (-1 == setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, &ipv6Only, sizeof(ipv6Only))) {
+        int err = errno;
         ::close(sock);
-        throw SockLib::Exception(std::format("Failed to set SO_REUSEADDR (errno error {})", err2));
+        throw SockLib::Exception(std::format("Failed to set ipv6-only='{}' state (errno error {})", !ipv4, err));
     }
 
-    sockaddr_in serverAddress{};
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = htonl(localhost ? INADDR_LOOPBACK : INADDR_ANY);
-    serverAddress.sin_port = htons(port);
+    sockaddr_in6 serverAddress{};
+    serverAddress.sin6_family = AF_INET6;
+    serverAddress.sin6_port = htons(port);
+    serverAddress.sin6_addr = loopback ? in6addr_loopback : in6addr_any;
 
-    if (-1 == bind(sock, (sockaddr*)&serverAddress, static_cast<socklen_t>(sizeof(serverAddress)))) {
-        int err2 = errno;
+    if (-1 == bind(sock, reinterpret_cast<sockaddr*>(&serverAddress), sizeof(serverAddress))) {
+        int err = errno;
         ::close(sock);
-        throw SockLib::Exception(std::format("Failed to bind server on port '{}' (errno error {})", port, err2));
+        throw SockLib::Exception(std::format("Failed to bind server on port '{}' (errno error {})", port, err));
     }
     if (-1 == listen(sock, SOMAXCONN)) {
-        int err2 = errno;
+        int err = errno;
         ::close(sock);
-        throw SockLib::Exception(std::format("Failed to make server listen on port '{}' (errno error {})", port, err2));
+        throw SockLib::Exception(std::format("Failed to make server listen on port '{}' (errno error {})", port, err));
     }
 
     return sock;
@@ -276,7 +295,7 @@ int SockLib::Helper::serverInit(std::uint16_t port, bool localhost)
 int SockLib::Helper::connect(const char *address, const char *port)
 {
     addrinfo hints{};
-    hints.ai_family   = AF_INET;
+    hints.ai_family   = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
     addrinfo *result = nullptr;
@@ -406,10 +425,8 @@ void SockLib::Helper::setTimeout(int &sock, int ms)
 }
 void SockLib::Helper::close(int &sock)
 {
-    if (-1 != sock) {
-        ::close(sock);
-        sock = -1;
-    }
+    ::close(sock);
+    sock = -1;
 }
 #ifdef __APPLE__
 int SockLib::Helper::disableSigpipe(int sock)

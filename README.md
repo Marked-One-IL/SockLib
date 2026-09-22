@@ -42,14 +42,14 @@ private:
 ```
 - Server
 ```cpp
-SockLib::Server server(8080, SockLib::Server::Visibility::LOCALHOST);
+SockLib::Server server(8080, SockLib::Server::Reachability::LOOPBACK_ONLY, SockLib::Server::IPver::IPV4_ONLY);
 SockLib::Sock sock = server.accept();
 Vec2 vec2 = { 25.25, 50.5 };
 sock.sendObj(vec2);
 ```
 - Client
 ```cpp
-SockLib::Sock sock = SockLib::Sock::connect(SockLib::Sock::LOCALHOST, 8080);
+SockLib::Sock sock = SockLib::Sock::connect(SockLib::Sock::LOOPBACK_ADDR, 8080);
 Vec2 vec2 = sock.recvObjStatic<Vec2>();
 vec2.print();
 ```

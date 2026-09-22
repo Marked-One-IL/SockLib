@@ -54,6 +54,7 @@ namespace SockLib
         static void   recvAll    (SOCKET &sock, char       *bytes, int size);
         static void   setTimeout (SOCKET &sock, int ms);
         static void   close      (SOCKET &sock);
+        
         struct StaticWSAStartupAndCleanup
         {
             StaticWSAStartupAndCleanup(void);
@@ -75,7 +76,7 @@ namespace SockLib
 #endif
         inline static constexpr int INVALID_SOCK = -1;
 
-        static int     serverInit (std::uint16_t port, bool localhost);
+        static int     serverInit (std::uint16_t port, bool loopback, bool ipv4, bool ipv6); // Both ipv4 and ipv6 can be true.
         static int     connect    (const char *address, const char *port);
         static int     accept     (int  sock);
         static ssize_t send       (int &sock, const void *bytes, std::size_t size);
