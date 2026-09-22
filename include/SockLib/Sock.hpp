@@ -32,7 +32,7 @@ namespace SockLib
         Sock(const SockLib::Sock &other) = delete;
         SockLib::Sock& operator = (const SockLib::Sock &other) = delete;
         Sock(SockLib::Sock &&other) noexcept;
-        SockLib::Sock& operator = (SockLib::Sock &&other) noexcept;   
+        SockLib::Sock& operator = (SockLib::Sock &&other) noexcept;
 
         template <typename Obj>                              
         void sendObj(const Obj &obj);
@@ -140,7 +140,7 @@ inline void SockLib::Sock::sendObj(const Obj &obj)
         else if constexpr (std::is_same_v<Type, SockLib::Obj::Bytes>) {
             this->sendBytes(field);
         }
-        else if constexpr (std::is_same_v<Type, SockLib::Obj::BytesSpan>) {
+        else if constexpr (std::is_same_v<Type, SockLib::Obj::BytesView>) {
             this->sendBytes(field);
         }
         else if constexpr (std::is_same_v<Type, SockLib::Obj::Bool>) {
