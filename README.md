@@ -49,7 +49,7 @@ sock.sendObj(vec2);
 ```
 - Client
 ```cpp
-SockLib::Sock sock = SockLib::Sock::connect(SockLib::Sock::LOOPBACK_ADDR, 8080);
+SockLib::Sock sock = SockLib::Sock::connect(SockLib::Sock::LOOPBACK_IPV4_ADDR, 8080);
 Vec2 vec2 = sock.recvObjStatic<Vec2>();
 vec2.print();
 ```
