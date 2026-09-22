@@ -16,7 +16,6 @@ namespace SockLib
     class Sock;
 }
 
-
 // "Why not create an interface?".
 // The reason I don't it's because of the limition of C++.
 // 'auto' here does a lot of the heavy lifting but without it unlimited arguments (...) are not useable.

@@ -3,6 +3,7 @@
 #include <iostream>
 #include <bit>
 #include <cstdlib>
+#include <cassert>
 
 #ifdef _WIN32
 #include <ws2tcpip.h>
@@ -53,21 +54,54 @@ std::uint64_t SockLib::Helper::normalizeUint64(std::uint64_t i)
 }
 
 #ifdef _WIN32
-SockLib::Helper::StaticWSAStartupAndCleanup SockLib::Helper::g_staticWSAStartupAndCleanup;
+SockLib::Helper::Sock SockLib::Helper::serverInit(u_short port, bool loopback, bool ipv4, bool ipv6)
+{ assert((true == ipv4) || (true == ipv6));
 
-SockLib::Helper::Sock SockLib::Helper::serverInit(u_short port, bool localhost)
-{
-    SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+    if (!ipv6)
+    {
+        SOCKET sock = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+        if (INVALID_SOCKET == sock) {
+            throw SockLib::Exception(std::format("Failed to initialize socket (WSA error {})", WSAGetLastError()));
+        }
+
+        sockaddr_in serverAddress{};
+        serverAddress.sin_family = AF_INET;
+        serverAddress.sin_addr.s_addr = htonl(loopback ? INADDR_LOOPBACK : INADDR_ANY);
+        serverAddress.sin_port = htons(port);
+
+        if (SOCKET_ERROR == bind(sock, reinterpret_cast<sockaddr*>(&serverAddress), sizeof(serverAddress))) {
+            int err = WSAGetLastError();
+            closesocket(sock);
+            throw SockLib::Exception(std::format("Failed to bind server on port '{}' (WSA error {})", port, err));
+        }
+        if (SOCKET_ERROR == listen(sock, SOMAXCONN)) {
+            int err = WSAGetLastError();
+            closesocket(sock);
+            throw SockLib::Exception(std::format("Failed to make server listen on port '{}' (WSA error {})", port, err));
+        }
+
+        return sock;
+    }
+    // if ipv6
+
+    SOCKET sock = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP);
     if (INVALID_SOCKET == sock) {
         throw SockLib::Exception(std::format("Failed to initialize socket (WSA error {})", WSAGetLastError()));
     }
 
-    sockaddr_in serverAddress{};
-    serverAddress.sin_family = AF_INET;
-    serverAddress.sin_addr.s_addr = htonl(localhost ? INADDR_LOOPBACK : INADDR_ANY);
-    serverAddress.sin_port = htons(port);
+    int ipv6Only = static_cast<int>(!ipv4);
+    if (SOCKET_ERROR == setsockopt(sock, IPPROTO_IPV6, IPV6_V6ONLY, reinterpret_cast<const char *>(&ipv6Only), sizeof(ipv6Only))) {
+        int err = WSAGetLastError();
+        closesocket(sock);
+        throw SockLib::Exception(std::format("Failed to set ipv6-only='{}' state (WSA error {})", !ipv4, err));
+    }
 
-    if (SOCKET_ERROR == bind(sock, (sockaddr*)&serverAddress, static_cast<int>(sizeof(serverAddress)))) {
+    sockaddr_in6 serverAddress{};
+    serverAddress.sin6_family = AF_INET6;
+    serverAddress.sin6_port = htons(port);
+    serverAddress.sin6_addr = loopback ? in6addr_loopback : in6addr_any;
+
+    if (SOCKET_ERROR == bind(sock, reinterpret_cast<sockaddr*>(&serverAddress), sizeof(serverAddress))) {
         int err = WSAGetLastError();
         closesocket(sock);
         throw SockLib::Exception(std::format("Failed to bind server on port '{}' (WSA error {})", port, err));
@@ -83,7 +117,7 @@ SockLib::Helper::Sock SockLib::Helper::serverInit(u_short port, bool localhost)
 SockLib::Helper::Sock SockLib::Helper::connect(const char *address, const char *port)
 {
     addrinfo hints{};
-    hints.ai_family   = AF_INET;
+    hints.ai_family = AF_UNSPEC;
     hints.ai_socktype = SOCK_STREAM;
     hints.ai_protocol = IPPROTO_TCP;
     addrinfo *result = nullptr;
@@ -164,12 +198,12 @@ void SockLib::Helper::recvAll(SOCKET &sock, char *bytes, int size)
 }
 void SockLib::Helper::setTimeout(SOCKET &sock, int ms)
 {
-    if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&ms), static_cast<int>(sizeof(ms)))) {
+    if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, reinterpret_cast<const char*>(&ms), sizeof(ms))) {
 		int err = WSAGetLastError();
         SockLib::Helper::close(sock);
         throw SockLib::Exception(std::format("Failed to set receive timeout (WSA error {})", err));
     }
-    if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&ms), static_cast<int>(sizeof(ms)))) {
+    if (SOCKET_ERROR == setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, reinterpret_cast<const char*>(&ms), sizeof(ms))) {
 		int err = WSAGetLastError();
         SockLib::Helper::close(sock);
         throw SockLib::Exception(std::format("Failed to set send timeout (WSA error {})", err));
@@ -177,11 +211,11 @@ void SockLib::Helper::setTimeout(SOCKET &sock, int ms)
 }
 void SockLib::Helper::close(SOCKET &sock)
 {
-    if (INVALID_SOCKET != sock) {
-        closesocket(sock);
-        sock = INVALID_SOCKET;
-    }
+    closesocket(sock);
+    sock = INVALID_SOCKET;
 }
+
+SockLib::Helper::StaticWSAStartupAndCleanup SockLib::Helper::g_staticWSAStartupAndCleanup;
 SockLib::Helper::StaticWSAStartupAndCleanup::StaticWSAStartupAndCleanup(void)
 {
     WSADATA wsa{};
@@ -359,12 +393,12 @@ void SockLib::Helper::setTimeout(int &sock, int ms)
     tv.tv_sec  = ms / 1000;
     tv.tv_usec = (ms % 1000) * 1000;
 
-    if (-1 == setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, static_cast<socklen_t>(sizeof(tv)))) {
+    if (-1 == setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv))) {
 		int err = errno;
         SockLib::Helper::close(sock);
         throw SockLib::Exception(std::format("Failed to set receive timeout (errno error {})", err));
     }
-    if (-1 == setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, static_cast<socklen_t>(sizeof(tv)))) {
+    if (-1 == setsockopt(sock, SOL_SOCKET, SO_SNDTIMEO, &tv, sizeof(tv))) {
 		int err = errno;
         SockLib::Helper::close(sock);
         throw SockLib::Exception(std::format("Failed to set send timeout (errno error {})", err));

@@ -2,22 +2,30 @@
 #include <cassert>
 
 SockLib::Server::Server(SockLib::Server &&other) noexcept :
-    m_sock(std::move(other.m_sock))
+    m_serverSock(std::move(other.m_serverSock))
 {
 }
 SockLib::Server &SockLib::Server::operator = (SockLib::Server &&other) noexcept
 {
-    this->m_sock = std::move(other.m_sock);
+    this->m_serverSock = std::move(other.m_serverSock);
 	return *this;
 }
 
-SockLib::Server::Server(std::uint16_t port, SockLib::Server::Visibility visibility) :
-    m_sock(SockLib::Helper::serverInit(static_cast<SockLib::Helper::PortType>(port), visibility == SockLib::Server::Visibility::LOCALHOST ? true : false))
+SockLib::Server::Server(std::uint16_t port, SockLib::Server::Accessibility accessibility, SockLib::Server::IPver ipVersion) :
+    m_serverSock(SockLib::Server::initServer(port, accessibility, ipVersion))
 {
 }
-
 SockLib::Sock SockLib::Server::accept(void) const
 {
-    SockLib::Sock sock = SockLib::Helper::accept(this->m_sock.m_socket);
-    return sock;
+    return SockLib::Sock(SockLib::Helper::accept(this->m_serverSock.m_sock));
+}
+
+SockLib::Sock SockLib::Server::initServer(std::uint16_t port, SockLib::Server::Accessibility accessibility, SockLib::Server::IPver ipVersion)
+{ assert((accessibility == SockLib::Server::Accessibility::LOOPBACK_ONLY) || (accessibility == SockLib::Server::Accessibility::ACCESSIBLE)); 
+  assert((ipVersion == SockLib::Server::IPver::IPV4_ONLY) || (ipVersion == SockLib::Server::IPver::IPV6_ONLY) || (ipVersion == SockLib::Server::IPver::IPV4N6));
+
+    return SockLib::Sock(SockLib::Helper::serverInit(static_cast<SockLib::Helper::PortType>(port),
+        accessibility == SockLib::Server::Accessibility::LOOPBACK_ONLY ? true : false,
+        ipVersion == SockLib::Server::IPver::IPV4_ONLY || ipVersion == SockLib::Server::IPver::IPV4N6 ? true : false,
+        ipVersion == SockLib::Server::IPver::IPV6_ONLY || ipVersion == SockLib::Server::IPver::IPV4N6 ? true : false));
 }

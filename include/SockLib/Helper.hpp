@@ -43,9 +43,9 @@ namespace SockLib
         using Byte = char;
         using PortType = u_short;
         using Sock = SOCKET;
-        inline static constexpr auto INVALID_SOCK = INVALID_SOCKET;
+        inline static constexpr SOCKET INVALID_SOCK = INVALID_SOCKET;
 
-        static SOCKET serverInit (u_short port, bool localhost);
+        static SOCKET serverInit (u_short port, bool loopback, bool ipv4, bool ipv6); // Both ipv4 and ipv6 can be true.
         static SOCKET connect    (const char *address, const char *port);
         static SOCKET accept     (SOCKET  sock); // No &sock because the server socket is not in danger.
         static int    send       (SOCKET &sock, const char *bytes, int size);
@@ -73,7 +73,7 @@ namespace SockLib
         inline static constexpr int sendFlag = 0;
         static int disableSigpipe(int sock);
 #endif
-        inline static constexpr auto INVALID_SOCK = -1;
+        inline static constexpr int INVALID_SOCK = -1;
 
         static int     serverInit (std::uint16_t port, bool localhost);
         static int     connect    (const char *address, const char *port);

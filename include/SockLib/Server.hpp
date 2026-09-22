@@ -10,24 +10,31 @@ namespace SockLib
     class Server
     {
     public:
-        enum class Visibility : std::uint8_t
+        enum class Accessibility : std::uint8_t
         {
-            LOCALHOST,
-            OPEN
+            LOOPBACK_ONLY,
+            ACCESSIBLE
+        };
+        enum class IPver : std::uint8_t
+        {
+            IPV4_ONLY,
+            IPV6_ONLY,
+            IPV4N6
         };
 
-        // Move semantics for STL support.
         Server(const SockLib::Server &other) = delete;
         SockLib::Server &operator = (const SockLib::Server &other) = delete;
         Server(SockLib::Server &&other) noexcept;
         SockLib::Server &operator = (SockLib::Server &&other) noexcept;
 
-        Server(std::uint16_t port, SockLib::Server::Visibility visibility);
-
+        Server(std::uint16_t port, SockLib::Server::Accessibility accessibility, SockLib::Server::IPver ipVersion);
         SockLib::Sock accept(void) const;
 
     private:
-        SockLib::Sock m_sock;
+        // This is used to safely assert before construction.
+        static SockLib::Sock initServer(std::uint16_t port, SockLib::Server::Accessibility accessibility, SockLib::Server::IPver ipVersion);
+        
+        SockLib::Sock m_serverSock;
     };
 }
 #endif // SOCK_LIB_SERVER

@@ -6,9 +6,9 @@
 #include <string>
 #include <string_view>
 #include <vector>
+#include <chrono>
 #include <type_traits>
 #include <cassert>
-#include <chrono>
 
 namespace SockLib
 {
@@ -17,17 +17,16 @@ namespace SockLib
     class Sock
     {
     public:
-        inline static constexpr std::size_t               MAX_SIZE    = 2147483647;
-        inline static constexpr std::chrono::milliseconds MAX_TIMEOUT = std::chrono::milliseconds(2147483647);
-        inline static constexpr const char               *LOCALHOST   = "127.0.0.1";
+        inline static constexpr std::size_t               MAX_SIZE       = 2147483647;
+        inline static constexpr std::chrono::milliseconds MAX_TIMEOUT    = std::chrono::milliseconds(2147483647);
+        inline static constexpr const char               *LOCALHOST_ADDR = "localhost"; // Works for both ipv4 and ipv6.
 
-        static SockLib::Sock connect(const char *address, std::uint16_t port);
+        static SockLib::Sock connect(const char *address, std::uint16_t port); // Address can be an url, ipv6 and ipv6 and so on.
         void setTimeout(std::chrono::milliseconds duration); // This apply for sending and receiving.
-        void disableTimeout(void); // This apply for sending and receiving.
+        void turnOffTimeout(void); // This apply for sending and receiving.
         void close(void);
         ~Sock(void);
 
-        // Move semantics for STL support.
         Sock(const SockLib::Sock &other) = delete;
         SockLib::Sock& operator = (const SockLib::Sock &other) = delete;
         Sock(SockLib::Sock &&other) noexcept;
@@ -93,7 +92,7 @@ namespace SockLib
         template <typename Obj, typename ...ConstructorArgs>
         Obj recvObjDynamicImpl(std::size_t dynamicBytesLimit, std::size_t &outGainedDynamicBytes, ConstructorArgs &&...constructorArgs);
 
-        SockLib::Helper::Sock m_socket;
+        SockLib::Helper::Sock m_sock;
         
         friend class SockLib::Server;
     };

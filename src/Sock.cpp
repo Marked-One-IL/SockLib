@@ -11,36 +11,34 @@ SockLib::Sock SockLib::Sock::connect(const char *address, std::uint16_t port)
     return sock;
 }
 void SockLib::Sock::setTimeout(std::chrono::milliseconds duration)
-{ assert(SockLib::Sock::MAX_TIMEOUT <= duration);
+{ assert(SockLib::Sock::MAX_TIMEOUT >= duration);
 
-    SockLib::Helper::setTimeout(this->m_socket, static_cast<SockLib::Helper::TimeoutType>(duration.count()));
+    SockLib::Helper::setTimeout(this->m_sock, static_cast<SockLib::Helper::TimeoutType>(duration.count()));
 }
-void SockLib::Sock::disableTimeout(void)
+void SockLib::Sock::turnOffTimeout(void)
 {
-    SockLib::Helper::setTimeout(this->m_socket, 0);
+    SockLib::Helper::setTimeout(this->m_sock, 0);
 }
 void SockLib::Sock::close(void)
 {
-    SockLib::Helper::close(this->m_socket);
+    SockLib::Helper::close(this->m_sock);
 }
 SockLib::Sock::~Sock(void)
 {
-    if (SockLib::Helper::INVALID_SOCK != this->m_socket) {
-        this->close();
-    }
+    this->close();
 }
 
 SockLib::Sock::Sock(SockLib::Sock &&other) noexcept :
-    m_socket(other.m_socket)
+    m_sock(other.m_sock)
 {
-    other.m_socket = SockLib::Helper::INVALID_SOCK;
+    other.m_sock = SockLib::Helper::INVALID_SOCK;
 }
 SockLib::Sock &SockLib::Sock::operator = (SockLib::Sock &&other) noexcept
 { assert(&other != this);
 
     this->close();
-    this->m_socket = other.m_socket;
-    other.m_socket = SockLib::Helper::INVALID_SOCK;
+    this->m_sock = other.m_sock;
+    other.m_sock = SockLib::Helper::INVALID_SOCK;
     return *this;
 }
 
@@ -275,27 +273,27 @@ std::string SockLib::Sock::recvStr(std::size_t maxBytes)
 void SockLib::Sock::sendRawAllBytes(const std::byte *bytes, std::size_t size)
 { assert(nullptr != bytes); assert(SockLib::Sock::MAX_SIZE >= size);
 
-    SockLib::Helper::sendAll(this->m_socket, reinterpret_cast<const SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
+    SockLib::Helper::sendAll(this->m_sock, reinterpret_cast<const SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
 }
 std::size_t SockLib::Sock::sendRawSomeBytes(const std::byte *bytes, std::size_t size)
 { assert(nullptr != bytes); assert(SockLib::Sock::MAX_SIZE >= size);
 
-    return static_cast<std::size_t>(SockLib::Helper::send(this->m_socket, reinterpret_cast<const SockLib::Helper::Byte*>(bytes),
+    return static_cast<std::size_t>(SockLib::Helper::send(this->m_sock, reinterpret_cast<const SockLib::Helper::Byte*>(bytes),
            static_cast<SockLib::Helper::Size>(size)));
 }
 void SockLib::Sock::recvRawAllBytes(std::byte *bytes, std::size_t size)
 { assert(nullptr != bytes); assert(SockLib::Sock::MAX_SIZE >= size);
 
-    SockLib::Helper::recvAll(this->m_socket, reinterpret_cast<SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
+    SockLib::Helper::recvAll(this->m_sock, reinterpret_cast<SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
 }
 std::size_t SockLib::Sock::recvRawSomeBytes(std::byte *bytes, std::size_t size)
 { assert(nullptr != bytes); assert(SockLib::Sock::MAX_SIZE >= size);
     
-    return static_cast<std::size_t>(SockLib::Helper::recv(this->m_socket, reinterpret_cast<SockLib::Helper::Byte*>(bytes),
+    return static_cast<std::size_t>(SockLib::Helper::recv(this->m_sock, reinterpret_cast<SockLib::Helper::Byte*>(bytes),
            static_cast<SockLib::Helper::Size>(size)));
 }
 
 SockLib::Sock::Sock(SockLib::Helper::Sock new_socket) :
-    m_socket(new_socket)
+    m_sock(new_socket)
 {
 }
