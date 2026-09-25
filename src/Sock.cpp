@@ -1,5 +1,7 @@
 #include <SockLib/Sock.hpp>
 #include <SockLib/Exception.hpp>
+#include <fstream>
+#include <memory>
 #include <cstring>
 #include <cassert>
 #include <cmath>
@@ -81,19 +83,22 @@ void SockLib::Sock::sendUint64(std::uint64_t i)
     this->sendRawAllBytes(reinterpret_cast<std::byte*>(&i), sizeof(i));
 }
 void SockLib::Sock::sendFloat32(SockLib::Helper::float32_t f)
-{
+{ assert(std::isfinite(f) == true);
+
     std::uint32_t i{};
     std::memcpy(&i, &f, sizeof(i));
     this->sendUint32(i);
 }
 void SockLib::Sock::sendFloat64(SockLib::Helper::float64_t f)
-{
+{ assert(std::isfinite(f) == true);
+
+
     std::uint64_t i{};
     std::memcpy(&i, &f, sizeof(i));
     this->sendUint64(i);
 }
 void SockLib::Sock::sendBytes(const std::byte *bytes, std::size_t size)
-{ assert(nullptr != bytes); assert(SockLib::Sock::MAX_SIZE >= size);
+{ assert((nullptr != bytes) || (0 != size)); assert(SockLib::Sock::MAX_SIZE >= size);
 
     this->sendUint32(static_cast<std::size_t>(size));
     this->sendRawAllBytes(bytes, size);
@@ -125,7 +130,49 @@ void SockLib::Sock::sendFloat(float f)
 }
 void SockLib::Sock::sendStr(std::string_view s)
 {
+#ifndef NDEBUG
+    for (auto c : s) {
+        unsigned char uc = static_cast<unsigned char>(c);
+        assert(('\x20' <= uc) && ('\x7E' >= uc));
+    }
+#endif
     this->sendBytes(reinterpret_cast<const std::byte*>(s.data()), static_cast<std::size_t>(s.size()));
+}
+void SockLib::Sock::sendFile(const std::filesystem::path &filePath, SockLib::Sock::FileMode fileMode, std::size_t chunkSize)
+{ assert(SockLib::Sock::MAX_SIZE >= chunkSize); assert((fileMode == SockLib::Sock::FileMode::TXT) || (fileMode == SockLib::Sock::FileMode::BIN));
+
+    std::ifstream file;
+    file.exceptions(std::ofstream::badbit | std::ofstream::failbit);
+    std::unique_ptr<std::byte[]> chunk = std::make_unique<std::byte[]>(chunkSize);
+
+    try
+    {
+        file.open(filePath, (fileMode == SockLib::Sock::FileMode::BIN) ? std::ios::binary : std::ios::openmode(0));
+
+        file.seekg(0, std::ios::end);
+        std::size_t size = static_cast<std::size_t>(file.tellg());
+        file.seekg(0, std::ios::beg);
+
+        assert(SockLib::Sock::MAX_FILE_SIZE >= size);
+
+        this->sendUint64(static_cast<std::uint64_t>(size));
+        std::size_t remaining = size;
+        while (remaining != 0) 
+        {
+            std::size_t currentSize = (remaining > chunkSize) ? chunkSize : remaining;
+
+            file.read(reinterpret_cast<char*>(chunk.get()), static_cast<std::streamsize>(currentSize));
+            this->sendRawAllBytes(chunk.get(), currentSize);
+
+            remaining -= currentSize;
+        }
+    }
+    catch (const std::ios_base::failure &e)
+    {
+        this->close();
+        throw SockLib::Exception(std::format("Failed to send file named '{}'\n"
+                                             "std::ios_base::failure = '{}'", filePath.string(), e.what()));
+    }
 }
 
 std::int8_t SockLib::Sock::recvInt8(void)
@@ -268,6 +315,41 @@ std::string SockLib::Sock::recvStr(std::size_t maxBytes)
     }
 
     return s;
+}
+void SockLib::Sock::recvFile(const std::filesystem::path &filePath, SockLib::Sock::FileMode fileMode, std::size_t chunkSize)
+{ assert(SockLib::Sock::MAX_SIZE >= chunkSize); assert((fileMode == SockLib::Sock::FileMode::TXT) || (fileMode == SockLib::Sock::FileMode::BIN));
+
+    std::ofstream file;
+    file.exceptions(std::ofstream::badbit | std::ofstream::failbit);
+    std::unique_ptr<std::byte[]> chunk = std::make_unique<std::byte[]>(chunkSize);
+
+    try
+    {
+        file.open(filePath, (fileMode == SockLib::Sock::FileMode::BIN) ? std::ios::binary : std::ios::openmode(0));
+
+        std::size_t size = static_cast<std::size_t>(this->recvUint64());
+        if (SockLib::Sock::MAX_FILE_SIZE < size) {
+            this->close();
+            throw SockLib::Exception("File size is above SockLib::Sock::MAX_FILE_SIZE");
+        }
+
+        std::size_t remaining = size;
+        while (remaining != 0)
+        {
+            std::size_t currentSize = (remaining > chunkSize) ? chunkSize : remaining;
+
+            this->recvRawAllBytes(chunk.get(), currentSize);
+            file.write(reinterpret_cast<const char*>(chunk.get()), static_cast<std::streamsize>(currentSize));
+
+            remaining -= currentSize;
+        }
+    }
+    catch (const std::ios_base::failure& e)
+    {
+        this->close();
+        throw SockLib::Exception(std::format("Failed to receive file named '{}'\n"
+                                             "std::ios_base::failure = '{}'", filePath.string(), e.what()));
+    }
 }
 
 void SockLib::Sock::sendRawAllBytes(const std::byte *bytes, std::size_t size)
