@@ -92,7 +92,6 @@ void SockLib::Sock::sendFloat32(SockLib::Helper::float32_t f)
 void SockLib::Sock::sendFloat64(SockLib::Helper::float64_t f)
 { assert(std::isfinite(f) == true);
 
-
     std::uint64_t i{};
     std::memcpy(&i, &f, sizeof(i));
     this->sendUint64(i);
@@ -316,7 +315,7 @@ std::string SockLib::Sock::recvStr(std::size_t maxBytes)
 
     return s;
 }
-void SockLib::Sock::recvFile(const std::filesystem::path &filePath, SockLib::Sock::FileMode fileMode, std::size_t chunkSize)
+void SockLib::Sock::recvFile(const std::filesystem::path &filePath, SockLib::Sock::FileMode fileMode, std::size_t chunkSize, std::size_t maxBytes)
 { assert(SockLib::Sock::MAX_SIZE >= chunkSize); assert((fileMode == SockLib::Sock::FileMode::TXT) || (fileMode == SockLib::Sock::FileMode::BIN));
 
     std::ofstream file;
@@ -325,12 +324,16 @@ void SockLib::Sock::recvFile(const std::filesystem::path &filePath, SockLib::Soc
 
     try
     {
-        file.open(filePath, (fileMode == SockLib::Sock::FileMode::BIN) ? std::ios::binary : std::ios::openmode(0));
+        file.open(filePath, ((fileMode == SockLib::Sock::FileMode::BIN) ? std::ios::binary : std::ios::openmode(0)) | std::ios::trunc);
 
         std::size_t size = static_cast<std::size_t>(this->recvUint64());
         if (SockLib::Sock::MAX_FILE_SIZE < size) {
             this->close();
-            throw SockLib::Exception("File size is above SockLib::Sock::MAX_FILE_SIZE");
+            throw SockLib::Exception(std::format("Received file size='{}' exceeds SockLib::Sock::MAX_FILE_SIZE", size));
+        }
+        if (maxBytes < size) {
+            this->close();
+            throw SockLib::Exception(std::format("Received file size='{}' exceeds given max-bytes='{}'", size, maxBytes));
         }
 
         std::size_t remaining = size;

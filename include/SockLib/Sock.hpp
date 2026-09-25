@@ -7,6 +7,8 @@
 #include <string_view>
 #include <vector>
 #include <chrono>
+#include <limits>
+#include <fstream>
 #include <filesystem>
 #include <type_traits>
 #include <cassert>
@@ -22,11 +24,11 @@ namespace SockLib
         {
             TXT,
             BIN
-        };
+        };        
 
-        inline static constexpr std::size_t               MAX_FILE_SIZE  = 9223372036854775807; // 8191 PiB.
-        inline static constexpr std::size_t               MAX_SIZE       = 2147483647; // 2GiB - 1.
-        inline static constexpr std::chrono::milliseconds MAX_TIMEOUT    = std::chrono::milliseconds(2147483647);
+        inline static constexpr std::size_t               MAX_FILE_SIZE      = 9223372036854775807; // 8EiB - 1.
+        inline static constexpr std::size_t               MAX_SIZE           = 2147483647; // 2GiB - 1.
+        inline static constexpr std::chrono::milliseconds MAX_TIMEOUT        = std::chrono::milliseconds(2147483647);
         inline static constexpr const char               *LOOPBACK_IPV4_ADDR = "127.0.0.1"; // For SockLib::Server::IPver::IPV4_ONLY
         inline static constexpr const char               *LOOPBACK_IPV6_ADDR = "::1"; // This is for For SockLib::Server::IPver::IPV6_ONLY/BOTH_IPV4N6.
         // "localhost" is defined by the OS configurations. So it's not reliable. For example on Linux Mint you have to manually define it for IPv6.
@@ -72,7 +74,7 @@ namespace SockLib
         void sendInt   (int              i); // On the network it's 'std::int32_t'.
         void sendFloat (float            f); // On the network it's 'SockLib::Helper::float32_t'.
         void sendStr   (std::string_view s); // On the network this is specified with a size - [uint32_t: size][byte[] N]
-        void sendFile  (const std::filesystem::path &filePath, SockLib::Sock::FileMode fileMode, std::size_t chunkSize);
+        void sendFile  (const std::filesystem::path &filePath, SockLib::Sock::FileMode fileMode, std::size_t chunkSize); // File size can be bigger than the RAM capacity.
 
         std::int8_t                recvInt8    (void);
         std::uint8_t               recvUint8   (void);
@@ -91,7 +93,7 @@ namespace SockLib
         int         recvInt   (void); // On the network it's 'std::int32_t'.
         float       recvFloat (void); // On the network it's 'SockLib::Helper::float32_t'.
         std::string recvStr   (std::size_t maxBytes); // On the network this is specified with a size - [uint32_t: size][byte[] N]
-        void        recvFile  (const std::filesystem::path &filePath, SockLib::Sock::FileMode fileMode, std::size_t chunkSize);
+        void        recvFile  (const std::filesystem::path &filePath, SockLib::Sock::FileMode fileMode, std::size_t chunkSize, std::size_t maxBytes); // File size can be bigger than the RAM capacity.
 
         void        sendRawAllBytes  (const std::byte *bytes, std::size_t size);
         std::size_t sendRawSomeBytes (const std::byte *bytes, std::size_t size); // Send bytes as the OS can. For size > 0: Sent bytes will be at least one.
