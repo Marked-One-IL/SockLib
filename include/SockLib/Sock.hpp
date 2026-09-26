@@ -26,7 +26,7 @@ namespace SockLib
             BIN
         };        
 
-        inline static constexpr std::size_t               MAX_FILE_SIZE      = 9223372036854775807; // 8EiB - 1.
+        inline static constexpr std::uint64_t             MAX_FILE_SIZE      = 9223372036854775807; // 8EiB - 1.
         inline static constexpr std::size_t               MAX_SIZE           = 2147483647; // 2GiB - 1.
         inline static constexpr std::chrono::milliseconds MAX_TIMEOUT        = std::chrono::milliseconds(2147483647);
         inline static constexpr const char               *LOOPBACK_IPV4_ADDR = "127.0.0.1"; // For SockLib::Server::IPver::IPV4_ONLY
@@ -93,7 +93,7 @@ namespace SockLib
         int         recvInt   (void); // On the network it's 'std::int32_t'.
         float       recvFloat (void); // On the network it's 'SockLib::Helper::float32_t'.
         std::string recvStr   (std::size_t maxBytes); // On the network this is specified with a size - [uint32_t: size][byte[] N]
-        void        recvFile  (const std::filesystem::path &filePath, SockLib::Sock::FileMode fileMode, std::size_t chunkSize, std::size_t maxBytes); // File size can be bigger than the RAM capacity.
+        void        recvFile  (const std::filesystem::path &filePath, SockLib::Sock::FileMode fileMode, std::size_t chunkSize, std::uint64_t maxBytes); // File size can be bigger than the RAM capacity.
 
         void        sendRawAllBytes  (const std::byte *bytes, std::size_t size);
         std::size_t sendRawSomeBytes (const std::byte *bytes, std::size_t size); // Send bytes as the OS can. For size > 0: Sent bytes will be at least one.
