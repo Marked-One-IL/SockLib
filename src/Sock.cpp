@@ -356,23 +356,23 @@ void SockLib::Sock::recvFile(const std::filesystem::path &filePath, SockLib::Soc
 }
 
 void SockLib::Sock::sendRawAllBytes(const std::byte *bytes, std::size_t size)
-{ assert(nullptr != bytes); assert(SockLib::Sock::MAX_SIZE >= size);
+{ assert((nullptr != bytes) || (0 != size)); assert(SockLib::Sock::MAX_SIZE >= size);
 
     SockLib::Helper::sendAll(this->m_sock, reinterpret_cast<const SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
 }
 std::size_t SockLib::Sock::sendRawSomeBytes(const std::byte *bytes, std::size_t size)
-{ assert(nullptr != bytes); assert(SockLib::Sock::MAX_SIZE >= size);
+{ assert((nullptr != bytes) || (0 != size)); assert(SockLib::Sock::MAX_SIZE >= size);
 
     return static_cast<std::size_t>(SockLib::Helper::send(this->m_sock, reinterpret_cast<const SockLib::Helper::Byte*>(bytes),
            static_cast<SockLib::Helper::Size>(size)));
 }
 void SockLib::Sock::recvRawAllBytes(std::byte *bytes, std::size_t size)
-{ assert(nullptr != bytes); assert(SockLib::Sock::MAX_SIZE >= size);
+{ assert((nullptr != bytes) || (0 != size)); assert(SockLib::Sock::MAX_SIZE >= size);
 
     SockLib::Helper::recvAll(this->m_sock, reinterpret_cast<SockLib::Helper::Byte*>(bytes), static_cast<SockLib::Helper::Size>(size));
 }
 std::size_t SockLib::Sock::recvRawSomeBytes(std::byte *bytes, std::size_t size)
-{ assert(nullptr != bytes); assert(SockLib::Sock::MAX_SIZE >= size);
+{ assert((nullptr != bytes) || (0 != size)); assert(SockLib::Sock::MAX_SIZE >= size);
     
     return static_cast<std::size_t>(SockLib::Helper::recv(this->m_sock, reinterpret_cast<SockLib::Helper::Byte*>(bytes),
            static_cast<SockLib::Helper::Size>(size)));
