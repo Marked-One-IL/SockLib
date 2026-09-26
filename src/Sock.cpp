@@ -150,7 +150,10 @@ void SockLib::Sock::sendFile(const std::filesystem::path &filePath, SockLib::Soc
 
         file.seekg(0, std::ios::end);
         std::uint64_t size = static_cast<std::uint64_t>(file.tellg());
-        assert(SockLib::Sock::MAX_FILE_SIZE >= size);
+        if (SockLib::Sock::MAX_FILE_SIZE < size) {
+            this->close();
+            throw SockLib::Exception(std::format("Sent file size='{}' exceeds SockLib::Sock::MAX_FILE_SIZE", size));
+        }
         file.seekg(0, std::ios::beg);
         this->sendUint64(size);
 
