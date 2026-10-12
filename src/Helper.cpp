@@ -307,7 +307,6 @@ int SockLib::Helper::connect(const char *address, const char *port)
     err = 0;
     for (addrinfo *current = result; current != nullptr; current = current->ai_next)
     {
-        restart:
         int sock = socket(current->ai_family, current->ai_socktype, current->ai_protocol);
         if (-1 == sock) {
             err = errno;
@@ -329,21 +328,14 @@ int SockLib::Helper::connect(const char *address, const char *port)
 
         err = errno;
         ::close(sock);
-        if (EINTR == err) {
-            goto restart;
-        }
     }
     freeaddrinfo(result);
     throw SockLib::Exception(std::format("Could not connect to '{}:{}' (errno error {})", address, port, err));
 }
 int SockLib::Helper::accept(int sock)
 {
-    restart:
     int newSock = ::accept(sock, nullptr, nullptr);
     if (-1 == newSock) {
-        if (EINTR == errno) {
-            goto restart;
-        }
         throw SockLib::Exception(std::format("Failed to accept client (errno error {})", errno));
     }
 #ifdef __APPLE__
@@ -357,12 +349,8 @@ int SockLib::Helper::accept(int sock)
 }
 ssize_t SockLib::Helper::send(int &sock, const void *bytes, std::size_t size)
 {
-    restart:
     ssize_t sent = ::send(sock, bytes, size, SockLib::Helper::sendFlag);
     if (-1 == sent) {
-        if (EINTR == errno) {
-            goto restart;
-        }
 		int err = errno;
         SockLib::Helper::close(sock);
         throw SockLib::Exception(std::format("Failed to send data (errno error {})", err));
@@ -378,13 +366,9 @@ void SockLib::Helper::sendAll(int &sock, const void *bytes, std::size_t size)
     }
 }
 ssize_t SockLib::Helper::recv(int &sock, void *bytes, std::size_t size)
-{    
-    restart:
+{
     ssize_t received = ::recv(sock, bytes, size, 0);
     if (-1 == received) {
-        if (EINTR == errno) {
-            goto restart;
-        }
 		int err = errno;
         SockLib::Helper::close(sock);
         throw SockLib::Exception(std::format("Failed to receive data (errno error {})", err));
